@@ -14,24 +14,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
-            --bg:          #f2f2f7;
-            --card:        #ffffff;
-            --green:       #00be35;
-            --green-dark:  #009028;
-            --label:       #1c1c1e;
-            --secondary:   #636366;
-            --tertiary:    #8e8e93;
-            --fill-4:      rgba(60,60,67,0.04);
-            --fill-8:      rgba(60,60,67,0.08);
-            --sep:         rgba(60,60,67,0.12);
-            --shadow-xs:   0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-sm:   0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md:   0 6px 20px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.04);
-            --shadow-lg:   0 12px 40px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06);
-            --radius:      14px;
-            --ease:        cubic-bezier(0.25,0.46,0.45,0.94);
-            --spring:      cubic-bezier(0.34,1.56,0.64,1);
-            --slide:       cubic-bezier(0.32,0.72,0,1);
+            --bg:         #f2f2f7;
+            --card:       #ffffff;
+            --green:      #00be35;
+            --green-dark: #009028;
+            --label:      #1c1c1e;
+            --secondary:  #636366;
+            --tertiary:   #8e8e93;
+            --fill-8:     rgba(60,60,67,0.08);
+            --sep:        rgba(60,60,67,0.12);
+            --shadow-sm:  0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:  0 6px 20px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg:  0 12px 40px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06);
+            --radius:     14px;
+            --ease:       cubic-bezier(0.25,0.46,0.45,0.94);
+            --spring:     cubic-bezier(0.34,1.56,0.64,1);
+            --slide:      cubic-bezier(0.32,0.72,0,1);
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; }
@@ -61,22 +59,14 @@
         }
         #logo:active { opacity: 0.5; }
         #hdr-div { width: 1px; height: 22px; background: var(--sep); }
-        #hdr-sub {
-            font-size: 15px; font-weight: 500;
-            color: var(--secondary); letter-spacing: -0.1px;
-        }
+        #hdr-sub { font-size: 15px; font-weight: 500; color: var(--secondary); letter-spacing: -0.1px; }
 
-        /* App shell */
-        #app {
-            padding-top: 60px;
-            height: 100%; display: flex; flex-direction: column;
-        }
+        /* Shell */
+        #app { padding-top: 60px; height: 100%; display: flex; flex-direction: column; }
 
         /* Breadcrumb */
         #breadcrumb {
-            background: var(--bg);
-            padding: 0 16px;
-            height: 40px;
+            background: var(--bg); padding: 0 16px; height: 40px;
             display: flex; align-items: center;
             overflow-x: auto; gap: 2px;
             border-bottom: 0.5px solid var(--sep);
@@ -93,11 +83,10 @@
         .crumb.active { color: var(--green); font-weight: 600; cursor: default; }
         .crumb-sep { color: var(--sep); font-size: 15px; flex-shrink: 0; padding: 0 1px; }
 
-        /* Content area */
+        /* Content */
         #content {
             flex: 1; overflow-y: auto; overflow-x: hidden;
-            padding: 16px 16px 40px;
-            display: none;
+            padding: 16px 16px 40px; display: none;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
         }
@@ -110,29 +99,25 @@
 
         /* Section labels */
         .sec-label {
-            font-size: 11px; font-weight: 700;
-            letter-spacing: 0.5px; text-transform: uppercase;
-            color: var(--tertiary); margin-bottom: 10px; padding: 0 2px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; color: var(--tertiary);
+            margin-bottom: 10px; padding: 0 2px;
         }
         .sec + .sec { margin-top: 24px; }
 
         /* Folder strip */
         #folders-row {
-            display: flex; gap: 10px;
-            overflow-x: auto; padding: 4px 2px 8px;
-            scroll-snap-type: x proximity;
-            scrollbar-width: none;
+            display: flex; gap: 10px; overflow-x: auto;
+            padding: 4px 2px 8px;
+            scroll-snap-type: x proximity; scrollbar-width: none;
         }
         #folders-row::-webkit-scrollbar { display: none; }
         .folder-card {
-            flex-shrink: 0; width: 108px;
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 14px 8px 12px;
-            display: flex; flex-direction: column;
-            align-items: center; gap: 9px;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
+            flex-shrink: 0; width: 110px;
+            background: var(--card); border-radius: var(--radius);
+            padding: 14px 10px 12px;
+            display: flex; flex-direction: column; align-items: center; gap: 9px;
+            cursor: pointer; box-shadow: var(--shadow-sm);
             scroll-snap-align: start;
             animation: cardIn 0.3s var(--ease) both;
             transition: transform 0.22s var(--spring), box-shadow 0.2s var(--ease);
@@ -140,12 +125,7 @@
         }
         .folder-card:hover  { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-md); }
         .folder-card:active { transform: scale(0.93) !important; transition-duration: 0.1s; }
-        .fi-bg {
-            width: 52px; height: 52px; border-radius: 12px;
-            background: linear-gradient(145deg, #fff3cc, #ffe98a);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .fi-bg svg { width: 30px; height: 30px; }
+        .folder-card img { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; }
         .folder-name {
             font-size: 12px; font-weight: 500; color: var(--label);
             text-align: center; line-height: 1.3; letter-spacing: -0.1px;
@@ -170,28 +150,35 @@
         }
         .file-card:hover  { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); outline-color: var(--green); }
         .file-card:active { transform: scale(0.95) !important; transition-duration: 0.1s; }
+
         .file-thumb {
             width: 100%; aspect-ratio: 4/3;
             display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden; flex-shrink: 0;
+            background: #f5f5f7;
         }
         .file-thumb.pdf   { background: linear-gradient(150deg,#fff0f0,#fce4e4); }
         .file-thumb.image { background: linear-gradient(150deg,#eaf6f3,#d4ede9); }
         .file-thumb.other { background: linear-gradient(150deg,#f5f5f7,#ebebed); }
-        .file-thumb svg { width: 48px; height: 48px; z-index: 1; }
-        .file-thumb img {
+
+        /* Icon in thumb — custom SVG img or inline svg */
+        .file-thumb .ico { width: 52px; height: 52px; object-fit: contain; z-index: 1; flex-shrink: 0; }
+        .file-thumb svg  { width: 48px; height: 48px; z-index: 1; }
+
+        /* Thumbnail overlay (from Graph API) */
+        .file-thumb .thmb {
             width: 100%; height: 100%; object-fit: cover;
             position: absolute; top: 0; left: 0; z-index: 2;
             transition: transform 0.35s var(--ease);
         }
-        .file-card:hover .file-thumb img { transform: scale(1.07); }
+        .file-card:hover .file-thumb .thmb { transform: scale(1.07); }
+
         .file-info { padding: 10px 12px 12px; }
         .file-name {
             font-size: 13px; font-weight: 600; color: var(--label);
             letter-spacing: -0.2px; line-height: 1.35;
             display: -webkit-box; -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical; overflow: hidden;
-            margin-bottom: 5px;
+            -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 5px;
         }
         .file-badge {
             display: inline-block; font-size: 10px; font-weight: 700;
@@ -208,17 +195,14 @@
         }
 
         /* Empty */
-        #empty {
-            display: none; padding: 80px 20px;
-            text-align: center; color: var(--tertiary); font-size: 15px;
-        }
+        #empty { display:none; padding:80px 20px; text-align:center; color:var(--tertiary); font-size:15px; }
 
         /* Loading / Login */
         #loading {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            height: calc(100vh - 60px);
-            gap: 16px; color: var(--secondary); font-size: 14px;
+            height: calc(100vh - 60px); gap: 16px;
+            color: var(--secondary); font-size: 14px;
         }
         .spinner {
             width: 28px; height: 28px;
@@ -229,15 +213,13 @@
         #login-screen {
             display: none; flex-direction: column;
             align-items: center; justify-content: center;
-            height: calc(100vh - 60px);
-            gap: 20px; padding: 0 40px;
+            height: calc(100vh - 60px); gap: 20px; padding: 0 40px;
         }
         #login-screen p { color: var(--secondary); font-size: 15px; text-align: center; }
         #login-btn {
             background: var(--green); color: white; border: none;
             padding: 13px 28px; font-size: 16px; border-radius: 12px;
-            cursor: pointer; font-family: inherit; font-weight: 600;
-            letter-spacing: -0.2px;
+            cursor: pointer; font-family: inherit; font-weight: 600; letter-spacing: -0.2px;
             transition: background 0.15s, transform 0.15s;
         }
         #login-btn:hover { background: var(--green-dark); transform: translateY(-1px); }
@@ -249,8 +231,7 @@
             background: #111; z-index: 100;
             display: flex; flex-direction: column;
             transform: translateY(105%);
-            transition: transform 0.4s var(--slide);
-            pointer-events: none;
+            transition: transform 0.4s var(--slide); pointer-events: none;
         }
         #pdf-overlay.on { transform: translateY(0); pointer-events: all; }
         #pdf-hdr {
@@ -264,11 +245,10 @@
             background: rgba(255,255,255,0.09); border: none; color: #999;
             width: 34px; height: 34px; border-radius: 50%; font-size: 18px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; flex-shrink: 0;
-            transition: background 0.15s, color 0.15s;
+            cursor: pointer; flex-shrink: 0; transition: background 0.15s, color 0.15s;
         }
         .pdf-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
-        #pdf-title { font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #dedede; letter-spacing: -0.1px; }
+        #pdf-title { font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #dedede; }
         .pdf-hbtn {
             background: rgba(255,255,255,0.07); border: none; color: #bbb;
             width: 36px; height: 36px; border-radius: 8px; font-size: 16px;
@@ -292,25 +272,20 @@
         }
         #pdf-q:focus { border-color: var(--green); }
         #pdf-q::placeholder { color: #555; }
-        .pdf-go  { background: var(--green); border: none; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600; }
-        .pdf-nav { background: rgba(255,255,255,0.08); border: none; color: #bbb; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
-        #pdf-info { color: #666; font-size: 13px; min-width: 60px; text-align: center; }
-        #pdf-body { flex: 1; display: flex; overflow: hidden; }
-        #pdf-outline {
-            width: 252px; background: #141414;
-            overflow-y: auto; flex-shrink: 0;
-            border-right: 0.5px solid rgba(255,255,255,0.06);
-            display: none;
-        }
-        #pdf-outline.on { display: block; }
-        .ol-hdr { padding: 12px 16px; font-size: 11px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 0.5px solid rgba(255,255,255,0.05); position: sticky; top: 0; background: #141414; }
-        .ol-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #aaa; border-bottom: 0.5px solid rgba(255,255,255,0.04); line-height: 1.35; transition: background 0.1s, color 0.1s; }
-        .ol-item:hover { background: rgba(0,190,53,0.12); color: #6eff96; }
-        .ol-child { padding-left: 28px; font-size: 12px; color: #666; }
-        #pdf-pages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .pg-wrap { box-shadow: 0 4px 24px rgba(0,0,0,0.5); background: #fff; max-width: 100%; }
-        .pg-wrap canvas { display: block; max-width: 100%; height: auto; }
-        #pdf-foot { background: #1a1a1a; color: #444; padding: 5px 16px; font-size: 12px; text-align: center; flex-shrink: 0; border-top: 0.5px solid rgba(255,255,255,0.05); }
+        .pdf-go  { background:var(--green); border:none; color:#fff; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-family:inherit; font-weight:600; }
+        .pdf-nav { background:rgba(255,255,255,0.08); border:none; color:#bbb; padding:8px 10px; border-radius:8px; cursor:pointer; }
+        #pdf-info { color:#666; font-size:13px; min-width:60px; text-align:center; }
+        #pdf-body { flex:1; display:flex; overflow:hidden; }
+        #pdf-outline { width:252px; background:#141414; overflow-y:auto; flex-shrink:0; border-right:0.5px solid rgba(255,255,255,0.06); display:none; }
+        #pdf-outline.on { display:block; }
+        .ol-hdr { padding:12px 16px; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:0.6px; border-bottom:0.5px solid rgba(255,255,255,0.05); position:sticky; top:0; background:#141414; }
+        .ol-item { padding:10px 16px; cursor:pointer; font-size:13px; color:#aaa; border-bottom:0.5px solid rgba(255,255,255,0.04); line-height:1.35; transition:background 0.1s,color 0.1s; }
+        .ol-item:hover { background:rgba(0,190,53,0.12); color:#6eff96; }
+        .ol-child { padding-left:28px; font-size:12px; color:#666; }
+        #pdf-pages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+        .pg-wrap { box-shadow:0 4px 24px rgba(0,0,0,0.5); background:#fff; max-width:100%; }
+        .pg-wrap canvas { display:block; max-width:100%; height:auto; }
+        #pdf-foot { background:#1a1a1a; color:#444; padding:5px 16px; font-size:12px; text-align:center; flex-shrink:0; border-top:0.5px solid rgba(255,255,255,0.05); }
 
         /* Image Viewer */
         #img-overlay {
@@ -318,8 +293,7 @@
             background: #111; z-index: 100;
             display: flex; flex-direction: column;
             transform: translateY(105%);
-            transition: transform 0.4s var(--slide);
-            pointer-events: none;
+            transition: transform 0.4s var(--slide); pointer-events: none;
         }
         #img-overlay.on { transform: translateY(0); pointer-events: all; }
         #img-hdr {
@@ -329,9 +303,9 @@
             display: flex; align-items: center; gap: 12px;
             border-bottom: 0.5px solid rgba(255,255,255,0.08); flex-shrink: 0;
         }
-        #img-title { font-size: 14px; flex: 1; color: #dedede; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #img-body { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 24px; }
-        #img-el { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
+        #img-title { font-size:14px; flex:1; color:#dedede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #img-body { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; padding:24px; }
+        #img-el { max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; }
     </style>
 </head>
 <body>
@@ -350,13 +324,11 @@
 
 <div id="app">
     <div id="breadcrumb"></div>
-
     <div id="loading"><div class="spinner"></div><span>Laden…</span></div>
     <div id="login-screen">
         <p>Verbinden met Microsoft…</p>
         <button id="login-btn" onclick="login()">Inloggen met Microsoft</button>
     </div>
-
     <div id="content">
         <div class="sec" id="sec-folders" style="display:none">
             <div class="sec-label">Mappen</div>
@@ -370,7 +342,6 @@
     </div>
 </div>
 
-<!-- PDF overlay -->
 <div id="pdf-overlay">
     <div id="pdf-hdr">
         <button class="pdf-close" onclick="closePdf()">&#8592;</button>
@@ -392,7 +363,6 @@
     <div id="pdf-foot"></div>
 </div>
 
-<!-- Image overlay -->
 <div id="img-overlay">
     <div id="img-hdr">
         <button class="pdf-close" onclick="closeImg()">&#8592;</button>
@@ -413,7 +383,7 @@ const ROOT_PATH = "Tablets/Vakmanschap CO";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const msal2 = new msal.PublicClientApplication({
+const msalApp = new msal.PublicClientApplication({
     auth: {
         clientId: CLIENT_ID,
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
@@ -428,23 +398,23 @@ let crumbs=[], items=[];
 let pdfDoc=null, hits=[], hitIdx=-1;
 let showOutline=false, showSearch=false;
 
-/* ── Auth ─────────────────────────────────────────── */
+/* Auth */
 async function init() {
     show('loading');
-    await msal2.handleRedirectPromise();
-    const accs = msal2.getAllAccounts();
+    await msalApp.handleRedirectPromise();
+    const accs = msalApp.getAllAccounts();
     if (accs.length) { await boot(); return; }
-    try   { await msal2.ssoSilent({ scopes: SCOPES }); await boot(); }
+    try   { await msalApp.ssoSilent({ scopes: SCOPES }); await boot(); }
     catch { show('login-screen'); }
 }
-async function login() { await msal2.loginRedirect({ scopes: SCOPES }); }
+async function login() { await msalApp.loginRedirect({ scopes: SCOPES }); }
 async function tok() {
-    const a = msal2.getAllAccounts()[0];
-    try { return (await msal2.acquireTokenSilent({ scopes: SCOPES, account: a })).accessToken; }
-    catch { await msal2.acquireTokenRedirect({ scopes: SCOPES, account: a }); }
+    const a = msalApp.getAllAccounts()[0];
+    try { return (await msalApp.acquireTokenSilent({ scopes: SCOPES, account: a })).accessToken; }
+    catch { await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: a }); }
 }
 
-/* ── Graph ────────────────────────────────────────── */
+/* Graph */
 async function gGet(url) {
     const r = await fetch(url, { headers: { Authorization: `Bearer ${await tok()}` } });
     if (!r.ok) throw new Error(`Graph ${r.status}: ${await r.text()}`);
@@ -460,8 +430,6 @@ async function boot() {
         driveId = drive.id;
         const root = await gGet(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${ROOT_PATH}`);
         rootId = root.id;
-
-        // Restore session if available
         const saved = sessionStorage.getItem('remo_crumbs');
         if (saved) {
             try {
@@ -491,34 +459,29 @@ async function goHome() {
     await loadFolder(rootId);
 }
 
-/* ── Render ───────────────────────────────────────── */
+/* Render */
 function renderBreadcrumb() {
     const bc = document.getElementById('breadcrumb');
     bc.innerHTML = crumbs.map((c,i) => {
-        const last = i === crumbs.length-1;
+        const last = i===crumbs.length-1;
         const sep  = i ? '<span class="crumb-sep">›</span>' : '';
-        return `${sep}<span class="crumb${last?' active':''}"${
-            last ? '' : ` onclick="navTo(${i})"`}>${c.name}</span>`;
+        return `${sep}<span class="crumb${last?' active':''}"${last?'':` onclick="navTo(${i})"`}>${c.name}</span>`;
     }).join('');
     bc.scrollLeft = bc.scrollWidth;
 }
 
-const SVG = {
-    folder: '<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z" fill="#d29200"/></svg>',
-    pdf:    '<svg viewBox="0 0 24 24"><rect x="3" y="2" width="13" height="18" rx="2" fill="#d13438"/><path d="M16 2l5 5h-4a1 1 0 01-1-1z" fill="#a10e10"/><text x="9.5" y="14.5" font-size="4.5" font-weight="700" fill="white" text-anchor="middle" font-family="Arial,sans-serif">PDF</text></svg>',
-    image:  '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="#00897b"/><circle cx="8.5" cy="9.5" r="1.5" fill="rgba(255,255,255,0.85)"/><path d="M2 17l5.5-5.5 3.5 3.5 3-3L22 20H2z" fill="rgba(255,255,255,0.6)"/></svg>',
-    other:  '<svg viewBox="0 0 24 24"><rect x="4" y="2" width="12" height="18" rx="2" fill="#8a8886"/><path d="M16 2l4 4h-3a1 1 0 01-1-1z" fill="#605e5c"/><rect x="7" y="9" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,0.5)"/><rect x="7" y="12" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,0.5)"/></svg>'
-};
+const ICON_OTHER = '<svg viewBox="0 0 24 24"><rect x="4" y="2" width="12" height="18" rx="2" fill="#8a8886"/><path d="M16 2l4 4h-3a1 1 0 01-1-1z" fill="#605e5c"/><rect x="7" y="9" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,0.5)"/><rect x="7" y="12" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,0.5)"/></svg>';
 
 function ftype(name) {
     const e = name.split('.').pop().toLowerCase();
-    if (e==='pdf') return {cls:'pdf',icon:SVG.pdf,label:'PDF'};
-    if (['jpg','jpeg','png','gif','bmp','webp'].includes(e)) return {cls:'image',icon:SVG.image,label:'Afbeelding'};
-    return {cls:'other',icon:SVG.other,label:'Bestand'};
+    if (e==='pdf') return {cls:'pdf', icon:'<img src="icons/icon-pdf.svg" class="ico" alt="">', label:'PDF'};
+    if (['jpg','jpeg','png','gif','bmp','webp'].includes(e))
+        return {cls:'image', icon:'<img src="icons/icon-image.svg" class="ico" alt="">', label:'Afbeelding'};
+    return {cls:'other', icon:ICON_OTHER, label:'Bestand'};
 }
 function sorted(arr) {
     return [...arr].sort((a,b) => {
-        if (!!a.folder !== !!b.folder) return a.folder ? -1 : 1;
+        if (!!a.folder !== !!b.folder) return a.folder?-1:1;
         return a.name.localeCompare(b.name,'nl');
     });
 }
@@ -530,7 +493,6 @@ function renderContent() {
     const sg = document.getElementById('sec-files');
     const em = document.getElementById('empty');
     const ct = document.getElementById('content');
-
     show('content');
     ct.classList.remove('enter');
     void ct.offsetWidth;
@@ -541,31 +503,33 @@ function renderContent() {
         document.getElementById('folders-row').innerHTML = folders.map((item,i) => {
             const d = JSON.stringify({id:item.id,name:item.name,isF:true,url:''});
             return `<div class="folder-card" style="animation-delay:${i*35}ms"
-                onclick='open2(${d.replace(/'/g,"&#39;")})' >
-                <div class="fi-bg">${SVG.folder}</div>
+                onclick='open2(${d.replace(/'/g,"&#39;")})'>
+                <img src="icons/icon-folder.svg" alt="" class="ico">
                 <span class="folder-name">${item.name}</span>
             </div>`;
         }).join('');
-    } else { sf.style.display = 'none'; }
+    } else sf.style.display = 'none';
 
     if (files.length) {
         sg.style.display = 'block';
         document.getElementById('files-grid').innerHTML = files.map((item,i) => {
             const {cls,icon,label} = ftype(item.name);
-            const url = item['@microsoft.graph.downloadUrl'] || '';
+            const url = item['@microsoft.graph.downloadUrl']||'';
             const d   = JSON.stringify({id:item.id,name:item.name,isF:false,url});
-            const th  = item.thumbnails?.[0]?.medium?.url || '';
-            const thHtml = th ? `<img src="${th.replace(/"/g,'&quot;')}" alt="" loading="lazy">${icon}` : icon;
+            const th  = item.thumbnails?.[0]?.medium?.url||'';
+            const inside = th
+                ? `<img src="${th.replace(/"/g,'&quot;')}" class="thmb" alt="" loading="lazy">${icon}`
+                : icon;
             return `<div class="file-card" style="animation-delay:${(folders.length+i)*35}ms"
                 onclick='open2(${d.replace(/'/g,"&#39;")})'>
-                <div class="file-thumb ${cls}">${thHtml}</div>
+                <div class="file-thumb ${cls}">${inside}</div>
                 <div class="file-info">
                     <div class="file-name">${item.name}</div>
                     <span class="file-badge ${cls}">${label}</span>
                 </div>
             </div>`;
         }).join('');
-    } else { sg.style.display = 'none'; }
+    } else sg.style.display = 'none';
 
     em.style.display = (!folders.length && !files.length) ? 'block' : 'none';
 }
@@ -584,7 +548,7 @@ async function navTo(i) {
     await loadFolder(crumbs[i].id);
 }
 
-/* ── PDF ──────────────────────────────────────────── */
+/* PDF */
 async function openPdf(url,name) {
     pdfDoc=null; hits=[]; hitIdx=-1;
     document.getElementById('pdf-title').textContent = name;
@@ -607,11 +571,11 @@ async function openPdf(url,name) {
 }
 async function renderPages() {
     const c = document.getElementById('pdf-pages'); c.innerHTML='';
-    for (let i=1; i<=pdfDoc.numPages; i++) {
-        const pg  = await pdfDoc.getPage(i);
-        const vp  = pg.getViewport({scale:1.5});
-        const w   = document.createElement('div'); w.id=`pp${i}`; w.className='pg-wrap';
-        const cv  = document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
+    for (let i=1;i<=pdfDoc.numPages;i++) {
+        const pg=await pdfDoc.getPage(i);
+        const vp=pg.getViewport({scale:1.5});
+        const w=document.createElement('div'); w.id=`pp${i}`; w.className='pg-wrap';
+        const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
         cv.style.cssText='display:block;max-width:100%;height:auto';
         w.appendChild(cv); c.appendChild(w);
         await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
@@ -619,61 +583,61 @@ async function renderPages() {
     }
 }
 function renderOutline(ol) {
-    const el = document.getElementById('pdf-outline');
-    el.innerHTML = '<div class="ol-hdr">Inhoudsopgave</div>';
-    if (!ol?.length) { el.innerHTML += '<div style="padding:14px 16px;color:#555;font-size:13px">Geen inhoudsopgave</div>'; return; }
-    el.innerHTML += buildOL(ol,false);
+    const el=document.getElementById('pdf-outline');
+    el.innerHTML='<div class="ol-hdr">Inhoudsopgave</div>';
+    if (!ol?.length){el.innerHTML+='<div style="padding:14px 16px;color:#555;font-size:13px">Geen inhoudsopgave</div>';return;}
+    el.innerHTML+=buildOL(ol,false);
 }
-function buildOL(arr,child) {
-    return arr.map(it => {
-        const cls = 'ol-item'+(child?' ol-child':'');
-        const d   = it.dest ? JSON.stringify(it.dest).replace(/'/g,"&#39;") : 'null';
+function buildOL(arr,child){
+    return arr.map(it=>{
+        const cls='ol-item'+(child?' ol-child':'');
+        const d=it.dest?JSON.stringify(it.dest).replace(/'/g,"&#39;"):'null';
         return `<div class="${cls}" onclick='olClick(${d})'>${it.title||'—'}</div>`
-            + (it.items?.length ? buildOL(it.items,true) : '');
+            +(it.items?.length?buildOL(it.items,true):'');
     }).join('');
 }
-async function olClick(dest) {
-    if (!dest||!pdfDoc) return;
-    try {
-        let d = typeof dest==='string' ? await pdfDoc.getDestination(dest) : dest;
-        if (Array.isArray(d)&&d.length) {
-            const idx = await pdfDoc.getPageIndex(d[0]);
+async function olClick(dest){
+    if(!dest||!pdfDoc)return;
+    try{
+        let d=typeof dest==='string'?await pdfDoc.getDestination(dest):dest;
+        if(Array.isArray(d)&&d.length){
+            const idx=await pdfDoc.getPageIndex(d[0]);
             document.getElementById(`pp${idx+1}`)?.scrollIntoView({behavior:'smooth',block:'start'});
         }
-    } catch {}
+    }catch{}
 }
-async function doSearch() {
-    const q = document.getElementById('pdf-q').value.toLowerCase().trim();
-    if (!q||!pdfDoc) return;
+async function doSearch(){
+    const q=document.getElementById('pdf-q').value.toLowerCase().trim();
+    if(!q||!pdfDoc)return;
     document.getElementById('pdf-info').textContent='...';
     hits=[];
-    for (let i=1;i<=pdfDoc.numPages;i++) {
+    for(let i=1;i<=pdfDoc.numPages;i++){
         const txt=(await(await pdfDoc.getPage(i)).getTextContent()).items.map(x=>x.str).join(' ').toLowerCase();
-        if (txt.includes(q)) hits.push(i);
+        if(txt.includes(q))hits.push(i);
     }
-    if (!hits.length) { document.getElementById('pdf-info').textContent='Niet gevonden'; hitIdx=-1; }
-    else { hitIdx=0; scrollHit(); }
+    if(!hits.length){document.getElementById('pdf-info').textContent='Niet gevonden';hitIdx=-1;}
+    else{hitIdx=0;scrollHit();}
 }
-function scrollHit() {
+function scrollHit(){
     document.getElementById(`pp${hits[hitIdx]}`)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('pdf-info').textContent=`${hitIdx+1} / ${hits.length}`;
 }
-function searchNext() { if(hits.length){hitIdx=(hitIdx+1)%hits.length;scrollHit();} }
-function searchPrev() { if(hits.length){hitIdx=(hitIdx-1+hits.length)%hits.length;scrollHit();} }
-function toggleOutline() {
+function searchNext(){if(hits.length){hitIdx=(hitIdx+1)%hits.length;scrollHit();}}
+function searchPrev(){if(hits.length){hitIdx=(hitIdx-1+hits.length)%hits.length;scrollHit();}}
+function toggleOutline(){
     showOutline=!showOutline;
     document.getElementById('pdf-outline').classList.toggle('on',showOutline);
     document.getElementById('pdf-outline-btn').classList.toggle('on',showOutline);
 }
-function toggleSearch() {
+function toggleSearch(){
     showSearch=!showSearch;
     document.getElementById('pdf-search-bar').classList.toggle('on',showSearch);
     document.getElementById('pdf-search-btn').classList.toggle('on',showSearch);
-    if (showSearch) document.getElementById('pdf-q').focus();
+    if(showSearch)document.getElementById('pdf-q').focus();
 }
-function closePdf() {
+function closePdf(){
     document.getElementById('pdf-overlay').classList.remove('on');
-    pdfDoc=null; hits=[];
+    pdfDoc=null;hits=[];
     setTimeout(()=>{
         document.getElementById('pdf-pages').innerHTML='';
         if(showOutline)toggleOutline();
@@ -681,27 +645,25 @@ function closePdf() {
     },420);
 }
 
-/* ── Image ────────────────────────────────────────── */
-function openImg(url,name) {
+/* Image */
+function openImg(url,name){
     document.getElementById('img-title').textContent=name;
     document.getElementById('img-el').src=url;
     document.getElementById('img-overlay').classList.add('on');
 }
-function closeImg() {
+function closeImg(){
     document.getElementById('img-overlay').classList.remove('on');
-    setTimeout(()=>{ document.getElementById('img-el').src=''; },420);
+    setTimeout(()=>{document.getElementById('img-el').src='';},420);
 }
 
-/* ── UI helpers ───────────────────────────────────── */
-function show(id) {
-    const ids=['loading','login-screen','content'];
-    ids.forEach(x=>{
+/* Helpers */
+function show(id){
+    ['loading','login-screen','content'].forEach(x=>{
         const el=document.getElementById(x);
-        if (x===id) el.style.display = x==='content' ? 'block' : 'flex';
-        else el.style.display='none';
+        el.style.display = x===id?(x==='content'?'block':'flex'):'none';
     });
 }
-function showErr(msg) {
+function showErr(msg){
     show('content');
     document.getElementById('sec-folders').style.display='none';
     document.getElementById('sec-files').style.display='none';
