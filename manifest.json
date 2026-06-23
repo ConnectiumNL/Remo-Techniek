@@ -1,13 +1,13 @@
 {
-  "name": "Cursusmateriaal",
+  "name": "Cursusmateriaal – Remo",
   "short_name": "Cursus",
   "description": "Documentenviewer voor studenten Remo West-Twente",
   "start_url": "/Remo-Techniek/",
   "scope": "/Remo-Techniek/",
   "display": "fullscreen",
   "orientation": "any",
-  "background_color": "#0078d4",
-  "theme_color": "#0078d4",
+  "background_color": "#00be35",
+  "theme_color": "#00be35",
   "icons": [
     {
       "src": "icons/icon.svg",

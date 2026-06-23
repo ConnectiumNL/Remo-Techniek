@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Cursusmateriaal</title>
+    <title>Cursusmateriaal – Remo</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0078d4">
+    <meta name="theme-color" content="#00be35">
     <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', -apple-system, sans-serif; background: #f3f2f1; height: 100vh; overflow: hidden; -webkit-user-select: none; user-select: none; }
 
-        /* Header */
+        /* ── Header ── */
         #header {
-            background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
-            color: white; padding: 0 20px;
+            background: #00be35;
+            padding: 0 20px;
             display: flex; align-items: center; height: 60px;
-            box-shadow: 0 2px 12px rgba(0,90,158,0.35);
+            box-shadow: 0 2px 10px rgba(0,150,40,0.35);
             gap: 14px;
         }
-        #header-logo {
-            width: 36px; height: 36px; background: rgba(255,255,255,0.2);
-            border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: -1px;
-        }
-        #header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.2px; }
+        #header-logo { height: 30px; width: auto; display: block; }
+        #header-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.35); margin: 0 2px; }
+        #header-sub { font-size: 14px; color: rgba(255,255,255,0.85); font-weight: 400; }
 
-        /* Breadcrumb */
+        /* ── Breadcrumb ── */
         #breadcrumb {
-            background: #004578; padding: 0 16px;
+            background: #007d23;
+            padding: 0 16px;
             display: flex; align-items: center;
             overflow-x: auto; gap: 2px; height: 40px; white-space: nowrap; scrollbar-width: none;
         }
@@ -39,14 +37,33 @@
         .crumb.active { color: white; font-weight: 600; cursor: default; }
         .crumb-sep { color: rgba(255,255,255,0.25); font-size: 12px; flex-shrink: 0; padding: 0 2px; }
 
-        /* File list */
-        #file-list { overflow-y: auto; height: calc(100vh - 100px); display: none; }
+        /* ── Toolbar ── */
+        #toolbar {
+            background: white; border-bottom: 1px solid #edebe9;
+            height: 44px; padding: 0 16px;
+            display: none; align-items: center; justify-content: space-between;
+        }
+        #toolbar.visible { display: flex; }
+        #item-count { font-size: 13px; color: #8a8886; }
+        .view-toggle { display: flex; gap: 4px; }
+        .view-btn {
+            background: none; border: 1px solid #edebe9; color: #605e5c;
+            width: 34px; height: 34px; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .view-btn:hover { border-color: #00be35; color: #00be35; }
+        .view-btn.active { background: #00be35; border-color: #00be35; color: white; }
+        .view-btn svg { width: 16px; height: 16px; }
+
+        /* ── File list (list mode) ── */
+        #file-list { overflow-y: auto; height: calc(100vh - 144px); display: none; }
         .file-item {
             display: flex; align-items: center; gap: 14px; padding: 10px 16px;
             border-bottom: 1px solid #edebe9; background: white;
             cursor: pointer; min-height: 64px;
         }
-        .file-item:active { background: #f0f6fc; }
+        .file-item:active { background: #f0fdf4; }
         .file-icon-wrap {
             width: 46px; height: 46px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -57,71 +74,112 @@
         .file-icon-wrap.other  { background: #f3f2f1; }
         .file-icon-wrap svg { width: 26px; height: 26px; }
         .file-info { flex: 1; min-width: 0; }
-        .file-name { display: block; font-size: 15px; color: #201f1e; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+        .file-name { display: block; font-size: 15px; color: #201f1e; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .file-meta { display: block; font-size: 12px; color: #8a8886; margin-top: 2px; }
         .file-chevron { color: #c8c6c4; font-size: 18px; flex-shrink: 0; }
 
-        /* Loading */
-        #loading { display: none; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 100px); color: #605e5c; font-size: 14px; gap: 16px; }
-        .spinner { width: 28px; height: 28px; border: 3px solid #edebe9; border-top-color: #0078d4; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* ── Grid mode ── */
+        #file-list.grid {
+            padding: 14px;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+            gap: 12px;
+            align-content: start;
+        }
+        .grid-card {
+            background: white; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08); cursor: pointer;
+            display: flex; flex-direction: column;
+            transition: box-shadow 0.15s;
+        }
+        .grid-card:active { box-shadow: 0 2px 10px rgba(0,190,53,0.2); }
+        .grid-thumb {
+            width: 100%; aspect-ratio: 1; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .grid-thumb.folder { background: #fff8e1; }
+        .grid-thumb.pdf    { background: #fde7e9; }
+        .grid-thumb.image  { background: #e6f4f1; }
+        .grid-thumb.other  { background: #f3f2f1; }
+        .grid-thumb img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+        .grid-thumb svg { width: 48px; height: 48px; }
+        .grid-info { padding: 8px 10px 10px; }
+        .grid-name { font-size: 13px; color: #201f1e; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .grid-meta { font-size: 11px; color: #8a8886; margin-top: 2px; display: block; }
 
-        /* Login fallback */
+        /* ── Loading / Login ── */
+        #loading { display: none; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 100px); color: #605e5c; font-size: 14px; gap: 16px; }
+        .spinner { width: 28px; height: 28px; border: 3px solid #edebe9; border-top-color: #00be35; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 100px); gap: 20px; }
         #login-screen p { color: #605e5c; font-size: 15px; text-align: center; padding: 0 32px; }
-        #login-btn { background: #0078d4; color: white; border: none; padding: 14px 32px; font-size: 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; box-shadow: 0 2px 8px rgba(0,120,212,0.3); }
+        #login-btn { background: #00be35; color: white; border: none; padding: 14px 32px; font-size: 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; }
 
-        /* PDF Viewer */
+        /* ── PDF Viewer ── */
         #pdf-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #111; flex-direction: column; z-index: 100; }
         #pdf-overlay.active { display: flex; }
-        #pdf-header { background: #1e1e1e; color: white; padding: 0 12px; display: flex; align-items: center; gap: 8px; height: 56px; flex-shrink: 0; border-bottom: 1px solid #2d2d2d; }
+        #pdf-header { background: #1a1a1a; padding: 0 12px; display: flex; align-items: center; gap: 8px; height: 56px; flex-shrink: 0; border-bottom: 1px solid #2a2a2a; }
         #pdf-close { background: none; border: none; color: #999; font-size: 20px; cursor: pointer; padding: 8px; min-width: 40px; transition: color 0.15s; }
         #pdf-close:hover { color: white; }
         #pdf-title { font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e0e0e0; }
-        .pdf-hdr-btn { background: #2a2a2a; border: 1px solid #383838; color: #bbb; padding: 0; border-radius: 6px; cursor: pointer; font-size: 16px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .pdf-hdr-btn { background: #252525; border: 1px solid #333; color: #bbb; border-radius: 6px; cursor: pointer; font-size: 16px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
         .pdf-hdr-btn:hover { background: #333; color: white; }
-        .pdf-hdr-btn.active { background: #0078d4; border-color: #0078d4; color: white; }
-
-        #pdf-search-bar { background: #1a1a1a; padding: 8px 12px; display: none; flex-shrink: 0; border-bottom: 1px solid #2d2d2d; align-items: center; gap: 8px; }
+        .pdf-hdr-btn.active { background: #00be35; border-color: #00be35; color: white; }
+        #pdf-search-bar { background: #171717; padding: 8px 12px; display: none; flex-shrink: 0; border-bottom: 1px solid #2a2a2a; align-items: center; gap: 8px; }
         #pdf-search-bar.visible { display: flex; }
-        #pdf-search-input { flex: 1; background: #2a2a2a; border: 1px solid #3d3d3d; color: white; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-family: inherit; outline: none; }
-        #pdf-search-input:focus { border-color: #0078d4; }
+        #pdf-search-input { flex: 1; background: #252525; border: 1px solid #383838; color: white; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-family: inherit; outline: none; }
+        #pdf-search-input:focus { border-color: #00be35; }
         #pdf-search-input::placeholder { color: #555; }
-        .pdf-search-go { background: #0078d4; border: none; color: white; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; white-space: nowrap; }
-        .pdf-search-nav { background: #2a2a2a; border: 1px solid #3d3d3d; color: #bbb; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .pdf-search-go { background: #00be35; border: none; color: white; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; }
+        .pdf-search-nav { background: #252525; border: 1px solid #383838; color: #bbb; padding: 8px 10px; border-radius: 6px; cursor: pointer; }
         #pdf-search-info { color: #777; font-size: 13px; min-width: 64px; text-align: center; }
-
         #pdf-body { flex: 1; display: flex; overflow: hidden; }
-        #pdf-outline { width: 256px; background: #161616; overflow-y: auto; flex-shrink: 0; display: none; border-right: 1px solid #2a2a2a; }
+        #pdf-outline { width: 256px; background: #141414; overflow-y: auto; flex-shrink: 0; display: none; border-right: 1px solid #252525; }
         #pdf-outline.visible { display: block; }
-        .outline-header { padding: 12px 16px; font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #2a2a2a; position: sticky; top: 0; background: #161616; }
-        .outline-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #bbb; border-bottom: 1px solid #1e1e1e; line-height: 1.35; transition: background 0.1s; }
-        .outline-item:active { background: #0078d4; color: white; }
+        .outline-header { padding: 12px 16px; font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #252525; position: sticky; top: 0; background: #141414; }
+        .outline-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #bbb; border-bottom: 1px solid #1c1c1c; line-height: 1.35; }
+        .outline-item:active { background: #00be35; color: white; }
         .outline-child { padding-left: 28px; font-size: 12px; color: #777; }
-
         #pdf-pages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
         .pdf-page-wrapper { box-shadow: 0 4px 24px rgba(0,0,0,0.6); background: white; max-width: 100%; }
         .pdf-page-wrapper canvas { display: block; max-width: 100%; height: auto; }
-        #pdf-footer { background: #1e1e1e; color: #555; padding: 6px 16px; font-size: 12px; text-align: center; flex-shrink: 0; border-top: 1px solid #2a2a2a; }
+        #pdf-footer { background: #1a1a1a; color: #555; padding: 6px 16px; font-size: 12px; text-align: center; flex-shrink: 0; border-top: 1px solid #252525; }
 
-        /* Image Viewer */
+        /* ── Image Viewer ── */
         #img-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #111; flex-direction: column; z-index: 100; }
         #img-overlay.active { display: flex; }
-        #img-header { background: #1e1e1e; color: white; padding: 0 12px; display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0; border-bottom: 1px solid #2d2d2d; }
-        #img-close { background: none; border: none; color: #999; font-size: 20px; cursor: pointer; padding: 8px; transition: color 0.15s; }
-        #img-close:hover { color: white; }
+        #img-header { background: #1a1a1a; padding: 0 12px; display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0; border-bottom: 1px solid #2a2a2a; }
+        #img-close { background: none; border: none; color: #999; font-size: 20px; cursor: pointer; padding: 8px; }
         #img-title { font-size: 14px; flex: 1; color: #e0e0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #img-container { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        #img-viewer { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+        #img-viewer { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div id="header">
-    <div id="header-logo">R</div>
-    <h1>Cursusmateriaal</h1>
+    <svg id="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="24.4 24.1 410.8 105">
+        <path fill="white" d="M435.2,24.2h-66.9c-9.3,0-16.8,7.5-16.8,16.8v88s66.9,0,66.9,0c9.3,0,16.8-7.5,16.8-16.8V24.2ZM374.8,105.3v-57.4h37v57.4h-37Z"/>
+        <path fill="white" d="M339.5,24.2h-88.1c-9.3,0-16.8,7.5-16.8,16.8v88h24V47.8h17v81.2h22.8V47.8h17v81.2h7.1c9.3,0,16.8-7.5,16.8-16.8V24.2Z"/>
+        <path fill="white" d="M163.4,47.8h60.1v-23.7h-66.9c-9.3,0-16.8,7.5-16.8,16.8v88h66.9c9.3,0,16.8-7.5,16.8-16.8v-6.9h-60.1v-16.6s60.1,0,60.1,0v-24.3h-60.1v-16.6Z"/>
+        <path fill="white" d="M129.3,71.6V24.2H41.2c-9.3,0-16.8,7.6-16.8,16.9v88h24.3v-40.6h53v40.6h24.3v-40.6h-13.6c9.3,0,16.8-7.5,16.8-16.8ZM48.7,47.9h56.3v16.5h-56.3v-16.5Z"/>
+    </svg>
+    <div id="header-divider"></div>
+    <span id="header-sub">Cursusmateriaal</span>
 </div>
 <div id="breadcrumb"></div>
+<div id="toolbar">
+    <span id="item-count"></span>
+    <div class="view-toggle">
+        <button class="view-btn active" id="btn-list" onclick="setView('list')" title="Lijstweergave">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="0" y="2" width="16" height="2.5" rx="1"/><rect x="0" y="6.75" width="16" height="2.5" rx="1"/><rect x="0" y="11.5" width="16" height="2.5" rx="1"/></svg>
+        </button>
+        <button class="view-btn" id="btn-grid" onclick="setView('grid')" title="Rasterweergave">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="0" y="0" width="7" height="7" rx="1.5"/><rect x="9" y="0" width="7" height="7" rx="1.5"/><rect x="0" y="9" width="7" height="7" rx="1.5"/><rect x="9" y="9" width="7" height="7" rx="1.5"/></svg>
+        </button>
+    </div>
+</div>
 
 <div id="login-screen">
     <p>Verbinden met Microsoft...</p>
@@ -135,8 +193,8 @@
     <div id="pdf-header">
         <button id="pdf-close" onclick="closePdf()">&#8592;</button>
         <span id="pdf-title"></span>
-        <button class="pdf-hdr-btn" id="search-btn" onclick="toggleSearch()" title="Zoeken">&#128269;</button>
-        <button class="pdf-hdr-btn" id="outline-btn" onclick="toggleOutline()" title="Inhoudsopgave">&#9776;</button>
+        <button class="pdf-hdr-btn" id="search-btn" onclick="toggleSearch()">&#128269;</button>
+        <button class="pdf-hdr-btn" id="outline-btn" onclick="toggleOutline()">&#9776;</button>
     </div>
     <div id="pdf-search-bar">
         <input id="pdf-search-input" type="text" placeholder="Zoeken in document..." onkeydown="if(event.key==='Enter')searchPdf()">
@@ -147,9 +205,9 @@
     </div>
     <div id="pdf-body">
         <div id="pdf-outline"><div class="outline-header">Inhoudsopgave</div></div>
-        <div id="pdf-pages"><div style="color:#444;padding:48px;text-align:center;">Laden...</div></div>
+        <div id="pdf-pages"></div>
     </div>
-    <div id="pdf-footer">Laden...</div>
+    <div id="pdf-footer"></div>
 </div>
 
 <!-- Image Viewer -->
@@ -183,74 +241,68 @@ const msalInstance = new msal.PublicClientApplication({
 });
 
 const SCOPES = ["Sites.Read.All", "Files.Read.All"];
-let driveId = null, breadcrumbs = [];
+let driveId = null, breadcrumbs = [], currentItems = [];
+let viewMode = 'list';
 let pdfDoc = null, searchResults = [], searchIdx = -1;
 let outlineVisible = false, searchVisible = false;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-
 async function init() {
     await msalInstance.handleRedirectPromise();
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length > 0) { await loadApp(); return; }
-    // Silent SSO — works on Intune-managed devices already signed in to Entra ID
     try {
         await msalInstance.ssoSilent({ scopes: SCOPES });
         await loadApp();
     } catch {
-        // Auto-redirect to Microsoft login (no button press needed on kiosk)
         await msalInstance.loginRedirect({ scopes: SCOPES });
     }
 }
-
 async function login() { await msalInstance.loginRedirect({ scopes: SCOPES }); }
-
 async function getToken() {
     const account = msalInstance.getAllAccounts()[0];
-    try {
-        return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account })).accessToken;
-    } catch { await msalInstance.acquireTokenRedirect({ scopes: SCOPES, account }); }
+    try { return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account })).accessToken; }
+    catch { await msalInstance.acquireTokenRedirect({ scopes: SCOPES, account }); }
 }
 
 // ── Graph ─────────────────────────────────────────────────────────────────────
-
 async function graphGet(url) {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${await getToken()}` } });
     if (!res.ok) throw new Error(`Graph ${res.status}: ${await res.text()}`);
     return res.json();
 }
-
 async function loadApp() {
     show('loading');
     try {
         const site = await graphGet(`https://graph.microsoft.com/v1.0/sites/${SITE_HOST}:${SITE_PATH}`);
         const drives = await graphGet(`https://graph.microsoft.com/v1.0/sites/${site.id}/drives`);
         const drive = drives.value.find(d => ['Gedeelde documenten','Documents','Documenten'].includes(d.name));
-        if (!drive) throw new Error('Bibliotheek niet gevonden. Beschikbaar: ' + drives.value.map(d => d.name).join(', '));
+        if (!drive) throw new Error('Bibliotheek niet gevonden: ' + drives.value.map(d=>d.name).join(', '));
         driveId = drive.id;
         const root = await graphGet(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${ROOT_PATH}`);
         breadcrumbs = [{ name: 'Vakmanschap CO', id: root.id }];
         await loadFolder(root.id);
     } catch(e) { showError(e.message); }
 }
-
 async function loadFolder(folderId) {
     show('loading');
     try {
-        const res = await graphGet(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${folderId}/children`);
+        const res = await graphGet(
+            `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${folderId}/children?$expand=thumbnails&$orderby=name`
+        );
+        currentItems = res.value;
         renderBreadcrumb();
-        renderItems(res.value);
+        renderItems();
     } catch(e) { showError(e.message); }
 }
 
 // ── File browser ──────────────────────────────────────────────────────────────
-
 function renderBreadcrumb() {
     const bc = document.getElementById('breadcrumb');
-    bc.innerHTML = breadcrumbs.map((c, i) => {
+    bc.innerHTML = breadcrumbs.map((c,i) => {
         const last = i === breadcrumbs.length - 1;
         const sep = i > 0 ? '<span class="crumb-sep">&#8250;</span>' : '';
-        return `${sep}<span class="crumb ${last ? 'active' : ''}" onclick="navToCrumb(${i})">${c.name}</span>`;
+        return `${sep}<span class="crumb ${last?'active':''}" onclick="navToCrumb(${i})">${c.name}</span>`;
     }).join('');
     bc.scrollLeft = bc.scrollWidth;
 }
@@ -264,61 +316,99 @@ const ICONS = {
 
 function fileType(name) {
     const ext = name.split('.').pop().toLowerCase();
-    if (ext === 'pdf') return { cls: 'pdf', icon: ICONS.pdf, label: 'PDF document' };
-    if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) return { cls: 'image', icon: ICONS.image, label: 'Afbeelding' };
-    return { cls: 'other', icon: ICONS.other, label: 'Bestand' };
+    if (ext === 'pdf') return { cls:'pdf', icon:ICONS.pdf, label:'PDF document' };
+    if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) return { cls:'image', icon:ICONS.image, label:'Afbeelding' };
+    return { cls:'other', icon:ICONS.other, label:'Bestand' };
 }
 
-function renderItems(items) {
-    show('file-list');
-    const list = document.getElementById('file-list');
-    if (!items.length) {
-        list.innerHTML = '<div style="padding:48px;text-align:center;color:#8a8886;">Geen bestanden in deze map</div>';
-        return;
-    }
-    const sorted = [...items].sort((a,b) => {
+function sorted(items) {
+    return [...items].sort((a,b) => {
         if (!!a.folder !== !!b.folder) return a.folder ? -1 : 1;
         return a.name.localeCompare(b.name, 'nl');
     });
-    list.innerHTML = sorted.map(item => {
-        const isFolder = !!item.folder;
-        const { cls, icon, label } = isFolder
-            ? { cls: 'folder', icon: ICONS.folder, label: 'Map' }
-            : fileType(item.name);
-        const dlUrl = item['@microsoft.graph.downloadUrl'] || '';
-        const data = JSON.stringify({ id: item.id, name: item.name, isFolder, url: dlUrl });
-        return `<div class="file-item" onclick='openItem(${data.replace(/'/g, "&#39;")})'>
-            <div class="file-icon-wrap ${cls}">${icon}</div>
-            <div class="file-info">
-                <span class="file-name">${item.name}</span>
-                <span class="file-meta">${label}</span>
-            </div>
-            ${isFolder ? '<span class="file-chevron">&#8250;</span>' : ''}
-        </div>`;
-    }).join('');
 }
 
-async function openItem({ id, name, isFolder, url }) {
-    if (isFolder) { breadcrumbs.push({ name, id }); await loadFolder(id); }
+function renderItems() {
+    const list = document.getElementById('file-list');
+    const toolbar = document.getElementById('toolbar');
+    const items = sorted(currentItems);
+    const folders = items.filter(i => i.folder).length;
+    const files = items.length - folders;
+    let countParts = [];
+    if (folders) countParts.push(`${folders} map${folders !== 1 ? 'pen' : ''}`);
+    if (files)   countParts.push(`${files} bestand${files !== 1 ? 'en' : ''}`);
+    document.getElementById('item-count').textContent = countParts.join(', ');
+    toolbar.classList.add('visible');
+    show('file-list');
+    if (!items.length) {
+        list.className = '';
+        list.innerHTML = '<div style="padding:48px;text-align:center;color:#8a8886;">Geen bestanden in deze map</div>';
+        return;
+    }
+    if (viewMode === 'grid') {
+        list.className = 'grid';
+        list.innerHTML = items.map(item => {
+            const isFolder = !!item.folder;
+            const {cls, icon, label} = isFolder ? {cls:'folder',icon:ICONS.folder,label:'Map'} : fileType(item.name);
+            const dlUrl = item['@microsoft.graph.downloadUrl'] || '';
+            const data = JSON.stringify({id:item.id, name:item.name, isFolder, url:dlUrl});
+            const thumbUrl = item.thumbnails?.[0]?.medium?.url || '';
+            const thumbHtml = thumbUrl
+                ? `<img src="${thumbUrl}" alt="" loading="lazy">`
+                : icon;
+            return `<div class="grid-card" onclick='openItem(${data.replace(/'/g,"&#39;")})'>
+                <div class="grid-thumb ${cls}">${thumbHtml}</div>
+                <div class="grid-info">
+                    <span class="grid-name">${item.name}</span>
+                    <span class="grid-meta">${label}</span>
+                </div>
+            </div>`;
+        }).join('');
+    } else {
+        list.className = '';
+        list.innerHTML = items.map(item => {
+            const isFolder = !!item.folder;
+            const {cls, icon, label} = isFolder ? {cls:'folder',icon:ICONS.folder,label:'Map'} : fileType(item.name);
+            const dlUrl = item['@microsoft.graph.downloadUrl'] || '';
+            const data = JSON.stringify({id:item.id, name:item.name, isFolder, url:dlUrl});
+            return `<div class="file-item" onclick='openItem(${data.replace(/'/g,"&#39;")})'>
+                <div class="file-icon-wrap ${cls}">${icon}</div>
+                <div class="file-info">
+                    <span class="file-name">${item.name}</span>
+                    <span class="file-meta">${label}</span>
+                </div>
+                ${isFolder ? '<span class="file-chevron">&#8250;</span>' : ''}
+            </div>`;
+        }).join('');
+    }
+}
+
+function setView(mode) {
+    viewMode = mode;
+    document.getElementById('btn-list').classList.toggle('active', mode === 'list');
+    document.getElementById('btn-grid').classList.toggle('active', mode === 'grid');
+    if (currentItems.length) renderItems();
+}
+
+async function openItem({id, name, isFolder, url}) {
+    if (isFolder) { breadcrumbs.push({name, id}); await loadFolder(id); }
     else {
         const ext = name.split('.').pop().toLowerCase();
         if (ext === 'pdf') openPdf(url, name);
         else if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) openImage(url, name);
     }
 }
-
 async function navToCrumb(i) {
     if (i === breadcrumbs.length - 1) return;
-    breadcrumbs = breadcrumbs.slice(0, i + 1);
+    breadcrumbs = breadcrumbs.slice(0, i+1);
     await loadFolder(breadcrumbs[i].id);
 }
 
 // ── PDF Viewer ────────────────────────────────────────────────────────────────
-
 async function openPdf(url, name) {
     pdfDoc = null; searchResults = []; searchIdx = -1;
     document.getElementById('pdf-title').textContent = name;
-    document.getElementById('pdf-pages').innerHTML = '<div style="color:#444;padding:48px;text-align:center;"><div class="spinner" style="margin:0 auto 16px;border-color:#2d2d2d;border-top-color:#0078d4;"></div>PDF laden...</div>';
+    document.getElementById('pdf-pages').innerHTML = '<div style="color:#444;padding:48px;text-align:center;"><div class="spinner" style="margin:0 auto 16px;border-color:#2a2a2a;border-top-color:#00be35;"></div>PDF laden...</div>';
     document.getElementById('pdf-footer').textContent = 'Laden...';
     document.getElementById('pdf-outline').innerHTML = '<div class="outline-header">Inhoudsopgave</div>';
     document.getElementById('pdf-search-info').textContent = '';
@@ -328,14 +418,13 @@ async function openPdf(url, name) {
     try {
         const buf = await (await fetch(url)).arrayBuffer();
         pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
-        document.getElementById('pdf-footer').textContent = `${pdfDoc.numPages} pagina${pdfDoc.numPages !== 1 ? "'s" : ''}`;
+        document.getElementById('pdf-footer').textContent = `${pdfDoc.numPages} pagina${pdfDoc.numPages!==1?"'s":''}`;
         renderOutline(await pdfDoc.getOutline());
         await renderAllPages();
     } catch(e) {
         document.getElementById('pdf-pages').innerHTML = `<div style="color:#f55;padding:32px;text-align:center;">Fout: ${e.message}</div>`;
     }
 }
-
 async function renderAllPages() {
     const container = document.getElementById('pdf-pages');
     container.innerHTML = '';
@@ -343,116 +432,100 @@ async function renderAllPages() {
         const page = await pdfDoc.getPage(i);
         const vp = page.getViewport({ scale: 1.5 });
         const wrapper = document.createElement('div');
-        wrapper.id = `pdf-page-${i}`;
-        wrapper.className = 'pdf-page-wrapper';
+        wrapper.id = `pdf-page-${i}`; wrapper.className = 'pdf-page-wrapper';
         const canvas = document.createElement('canvas');
         canvas.width = vp.width; canvas.height = vp.height;
         canvas.style.maxWidth = '100%'; canvas.style.height = 'auto';
-        wrapper.appendChild(canvas);
-        container.appendChild(wrapper);
+        wrapper.appendChild(canvas); container.appendChild(wrapper);
         await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
         await new Promise(r => setTimeout(r, 0));
     }
 }
-
 function renderOutline(outline) {
     const el = document.getElementById('pdf-outline');
     el.innerHTML = '<div class="outline-header">Inhoudsopgave</div>';
-    if (!outline?.length) {
-        el.innerHTML += '<div style="padding:14px 16px;color:#555;font-size:13px;">Geen inhoudsopgave</div>';
-        return;
-    }
+    if (!outline?.length) { el.innerHTML += '<div style="padding:14px 16px;color:#555;font-size:13px;">Geen inhoudsopgave</div>'; return; }
     el.innerHTML += buildOutlineHTML(outline, false);
 }
-
 function buildOutlineHTML(items, isChild) {
     return items.map(item => {
         const cls = 'outline-item' + (isChild ? ' outline-child' : '');
-        const dest = item.dest ? JSON.stringify(item.dest).replace(/'/g, "&#39;") : 'null';
-        return `<div class="${cls}" onclick='goToOutlineItem(${dest})'>${item.title || '—'}</div>`
+        const dest = item.dest ? JSON.stringify(item.dest).replace(/'/g,"&#39;") : 'null';
+        return `<div class="${cls}" onclick='goToOutlineItem(${dest})'>${item.title||'—'}</div>`
             + (item.items?.length ? buildOutlineHTML(item.items, true) : '');
     }).join('');
 }
-
 async function goToOutlineItem(dest) {
     if (!dest || !pdfDoc) return;
     try {
-        let d = typeof dest === 'string' ? await pdfDoc.getDestination(dest) : dest;
+        let d = typeof dest==='string' ? await pdfDoc.getDestination(dest) : dest;
         if (Array.isArray(d) && d.length) {
             const idx = await pdfDoc.getPageIndex(d[0]);
-            document.getElementById(`pdf-page-${idx+1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById(`pdf-page-${idx+1}`)?.scrollIntoView({behavior:'smooth',block:'start'});
         }
     } catch(e) {}
 }
-
 async function searchPdf() {
     const q = document.getElementById('pdf-search-input').value.toLowerCase().trim();
     if (!q || !pdfDoc) return;
     document.getElementById('pdf-search-info').textContent = '...';
     searchResults = [];
     for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const page = await pdfDoc.getPage(i);
-        const txt = (await page.getTextContent()).items.map(x => x.str).join(' ').toLowerCase();
+        const txt = (await (await pdfDoc.getPage(i)).getTextContent()).items.map(x=>x.str).join(' ').toLowerCase();
         if (txt.includes(q)) searchResults.push(i);
     }
-    if (!searchResults.length) {
-        document.getElementById('pdf-search-info').textContent = 'Niet gevonden';
-        searchIdx = -1;
-    } else { searchIdx = 0; scrollToResult(); }
+    if (!searchResults.length) { document.getElementById('pdf-search-info').textContent='Niet gevonden'; searchIdx=-1; }
+    else { searchIdx=0; scrollToResult(); }
 }
-
 function scrollToResult() {
-    document.getElementById(`pdf-page-${searchResults[searchIdx]}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(`pdf-page-${searchResults[searchIdx]}`)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('pdf-search-info').textContent = `${searchIdx+1} / ${searchResults.length}`;
 }
-function searchNext() { if (searchResults.length) { searchIdx = (searchIdx+1) % searchResults.length; scrollToResult(); } }
-function searchPrev() { if (searchResults.length) { searchIdx = (searchIdx-1+searchResults.length) % searchResults.length; scrollToResult(); } }
-
+function searchNext() { if (searchResults.length) { searchIdx=(searchIdx+1)%searchResults.length; scrollToResult(); } }
+function searchPrev() { if (searchResults.length) { searchIdx=(searchIdx-1+searchResults.length)%searchResults.length; scrollToResult(); } }
 function toggleOutline() {
-    outlineVisible = !outlineVisible;
-    document.getElementById('pdf-outline').classList.toggle('visible', outlineVisible);
-    document.getElementById('outline-btn').classList.toggle('active', outlineVisible);
+    outlineVisible=!outlineVisible;
+    document.getElementById('pdf-outline').classList.toggle('visible',outlineVisible);
+    document.getElementById('outline-btn').classList.toggle('active',outlineVisible);
 }
 function toggleSearch() {
-    searchVisible = !searchVisible;
-    document.getElementById('pdf-search-bar').classList.toggle('visible', searchVisible);
-    document.getElementById('search-btn').classList.toggle('active', searchVisible);
+    searchVisible=!searchVisible;
+    document.getElementById('pdf-search-bar').classList.toggle('visible',searchVisible);
+    document.getElementById('search-btn').classList.toggle('active',searchVisible);
     if (searchVisible) document.getElementById('pdf-search-input').focus();
 }
 function closePdf() {
     document.getElementById('pdf-overlay').classList.remove('active');
-    pdfDoc = null; searchResults = [];
-    document.getElementById('pdf-pages').innerHTML = '';
+    pdfDoc=null; searchResults=[];
+    document.getElementById('pdf-pages').innerHTML='';
     if (outlineVisible) toggleOutline();
     if (searchVisible) toggleSearch();
 }
 
-// ── Image Viewer ────────────────────────────────────────────────────────────
-
+// ── Image Viewer ───────────────────────────────────────────────────────────
 function openImage(url, name) {
-    document.getElementById('img-title').textContent = name;
-    document.getElementById('img-viewer').src = url;
+    document.getElementById('img-title').textContent=name;
+    document.getElementById('img-viewer').src=url;
     document.getElementById('img-overlay').classList.add('active');
 }
 function closeImg() {
     document.getElementById('img-overlay').classList.remove('active');
-    document.getElementById('img-viewer').src = '';
+    document.getElementById('img-viewer').src='';
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
 function show(id) {
     ['login-screen','loading','file-list'].forEach(s => {
-        document.getElementById(s).style.display = s === id ? (s === 'file-list' ? 'block' : 'flex') : 'none';
+        document.getElementById(s).style.display = s===id ? (s==='file-list'?'block':'flex') : 'none';
     });
 }
 function showError(msg) {
+    document.getElementById('toolbar').classList.remove('visible');
     show('file-list');
-    document.getElementById('file-list').innerHTML = `<div style="padding:40px;text-align:center;color:#d13438;">Fout: ${msg}</div>`;
+    document.getElementById('file-list').innerHTML=`<div style="padding:40px;text-align:center;color:#d13438;">Fout: ${msg}</div>`;
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
-
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 init();
 </script>
 </body>
