@@ -1,5 +1,5 @@
-const CACHE = 'docviewer-v1';
-const PRECACHE = ['/', '/index.html', '/manifest.json', '/documents.json'];
+const CACHE = 'docviewer-v2';
+const PRECACHE = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
     e.waitUntil(
@@ -18,7 +18,6 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    // Only cache same-origin requests, stream PDFs/images fresh
     const url = new URL(e.request.url);
     if (url.origin !== location.origin) {
         e.respondWith(fetch(e.request));

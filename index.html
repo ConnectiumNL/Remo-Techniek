@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Cursusmateriaal</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0078d4">
     <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -52,15 +52,35 @@
         /* PDF Viewer */
         #pdf-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #1a1a1a; flex-direction: column; z-index: 100; }
         #pdf-overlay.active { display: flex; }
-        #pdf-header { background: #2d2d2d; color: white; padding: 0 16px; display: flex; align-items: center; gap: 12px; height: 52px; flex-shrink: 0; }
+
+        #pdf-header { background: #2d2d2d; color: white; padding: 0 12px; display: flex; align-items: center; gap: 8px; height: 52px; flex-shrink: 0; }
         #pdf-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; padding: 8px; line-height: 1; min-width: 40px; }
         #pdf-title { font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #pdf-controls { background: #2d2d2d; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; flex-shrink: 0; border-top: 1px solid #444; }
-        #pdf-controls button { background: #444; border: none; color: white; padding: 8px 16px; border-radius: 4px; font-size: 18px; cursor: pointer; min-width: 48px; min-height: 40px; }
-        #pdf-controls button:active { background: #555; }
-        #page-info { color: #ccc; font-size: 14px; min-width: 70px; text-align: center; }
-        #pdf-canvas-container { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 16px; }
-        #pdf-frame { width: 100%; height: 100%; border: none; }
+        .pdf-hdr-btn { background: #3d3d3d; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 16px; min-width: 36px; height: 36px; }
+        .pdf-hdr-btn:active { background: #555; }
+
+        #pdf-search-bar { background: #252525; padding: 8px 12px; display: none; flex-shrink: 0; border-bottom: 1px solid #3a3a3a; align-items: center; gap: 8px; }
+        #pdf-search-bar.visible { display: flex; }
+        #pdf-search-input { flex: 1; background: #333; border: 1px solid #555; color: white; padding: 7px 10px; border-radius: 4px; font-size: 14px; font-family: 'Segoe UI', sans-serif; }
+        #pdf-search-input::placeholder { color: #888; }
+        .pdf-search-btn { background: #0078d4; border: none; color: white; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+        .pdf-search-nav { background: #3d3d3d; border: none; color: white; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        #pdf-search-info { color: #aaa; font-size: 13px; min-width: 64px; text-align: center; }
+
+        #pdf-body { flex: 1; display: flex; overflow: hidden; }
+
+        #pdf-outline { width: 240px; background: #222; overflow-y: auto; flex-shrink: 0; display: none; border-right: 1px solid #333; }
+        #pdf-outline.visible { display: block; }
+        .outline-title { padding: 10px 14px; font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #333; }
+        .outline-item { padding: 9px 14px; cursor: pointer; font-size: 13px; color: #ccc; border-bottom: 1px solid #2a2a2a; line-height: 1.3; }
+        .outline-item:active { background: #0078d4; color: white; }
+        .outline-child { padding-left: 26px; font-size: 12px; color: #999; }
+
+        #pdf-pages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .pdf-page-wrapper { box-shadow: 0 2px 12px rgba(0,0,0,0.6); background: white; max-width: 100%; }
+        .pdf-page-wrapper canvas { display: block; max-width: 100%; height: auto; }
+
+        #pdf-footer { background: #2d2d2d; color: #888; padding: 5px 16px; font-size: 12px; text-align: center; flex-shrink: 0; }
 
         /* Image Viewer */
         #img-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #1a1a1a; flex-direction: column; z-index: 100; }
@@ -84,14 +104,29 @@
 <div id="loading" style="display:flex;"><div class="spinner"></div> Laden...</div>
 <div id="file-list"></div>
 
+<!-- PDF Viewer -->
 <div id="pdf-overlay">
     <div id="pdf-header">
         <button id="pdf-close" onclick="closePdf()">&#8592;</button>
         <span id="pdf-title"></span>
+        <button class="pdf-hdr-btn" onclick="toggleSearch()" title="Zoeken">&#128269;</button>
+        <button class="pdf-hdr-btn" onclick="toggleOutline()" title="Inhoudsopgave">&#9776;</button>
     </div>
-    <iframe id="pdf-frame" src=""></iframe>
+    <div id="pdf-search-bar">
+        <input id="pdf-search-input" type="text" placeholder="Zoeken in document..." onkeydown="if(event.key==='Enter')searchPdf()">
+        <button class="pdf-search-btn" onclick="searchPdf()">Zoek</button>
+        <button class="pdf-search-nav" onclick="searchPrev()">&#8679;</button>
+        <button class="pdf-search-nav" onclick="searchNext()">&#8681;</button>
+        <span id="pdf-search-info"></span>
+    </div>
+    <div id="pdf-body">
+        <div id="pdf-outline"><div class="outline-title">Inhoudsopgave</div></div>
+        <div id="pdf-pages"><div style="color:#888;padding:48px;text-align:center;">Laden...</div></div>
+    </div>
+    <div id="pdf-footer">Laden...</div>
 </div>
 
+<!-- Image Viewer -->
 <div id="img-overlay">
     <div id="img-header">
         <button id="img-close" onclick="closeImg()">&#8592;</button>
@@ -116,7 +151,7 @@ const msalInstance = new msal.PublicClientApplication({
     auth: {
         clientId: CLIENT_ID,
         authority: `https://login.microsoftonline.com/${TENANT_ID}`,
-        redirectUri: window.location.origin
+        redirectUri: window.location.origin + window.location.pathname
     },
     cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: true }
 });
@@ -124,7 +159,13 @@ const msalInstance = new msal.PublicClientApplication({
 const SCOPES = ["Sites.Read.All", "Files.Read.All"];
 let driveId = null;
 let breadcrumbs = [];
-let currentBlobUrl = null;
+
+// PDF state
+let pdfDoc = null;
+let searchResults = [];
+let searchIdx = -1;
+let outlineVisible = false;
+let searchVisible = false;
 
 async function init() {
     await msalInstance.handleRedirectPromise();
@@ -193,7 +234,7 @@ function renderBreadcrumb() {
     const bc = document.getElementById('breadcrumb');
     bc.innerHTML = breadcrumbs.map((c, i) => {
         const last = i === breadcrumbs.length - 1;
-        const sep = i > 0 ? `<span class="crumb-sep">›</span>` : '';
+        const sep = i > 0 ? `<span class="crumb-sep">&#8250;</span>` : '';
         return `${sep}<span class="crumb ${last ? 'active' : ''}" onclick="navToCrumb(${i})">${c.name}</span>`;
     }).join('');
     bc.scrollLeft = bc.scrollWidth;
@@ -212,22 +253,22 @@ function renderItems(items) {
     });
     list.innerHTML = sorted.map(item => {
         const isFolder = !!item.folder;
-        const icon = isFolder ? '📁' : fileIcon(item.name);
+        const icon = isFolder ? '&#128193;' : fileIcon(item.name);
         const dlUrl = item['@microsoft.graph.downloadUrl'] || '';
         const data = JSON.stringify({ id: item.id, name: item.name, isFolder, url: dlUrl });
         return `<div class="file-item" onclick='openItem(${data.replace(/'/g, "&#39;")})'>
             <span class="file-icon">${icon}</span>
             <span class="file-name">${item.name}</span>
-            <span class="file-arrow">${isFolder ? '›' : ''}</span>
+            <span class="file-arrow">${isFolder ? '&#8250;' : ''}</span>
         </div>`;
     }).join('');
 }
 
 function fileIcon(name) {
     const ext = name.split('.').pop().toLowerCase();
-    if (ext === 'pdf') return '📄';
-    if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) return '🖼️';
-    return '📋';
+    if (ext === 'pdf') return '&#128196;';
+    if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) return '&#128444;';
+    return '&#128203;';
 }
 
 async function openItem({ id, name, isFolder, url }) {
@@ -247,27 +288,164 @@ async function navToCrumb(i) {
     await loadFolder(breadcrumbs[i].id);
 }
 
+// ─── PDF Viewer ───────────────────────────────────────────────────────────────
+
 async function openPdf(url, name) {
+    pdfDoc = null;
+    searchResults = [];
+    searchIdx = -1;
+
     document.getElementById('pdf-title').textContent = name;
+    document.getElementById('pdf-pages').innerHTML = '<div style="color:#888;padding:48px;text-align:center;"><div class="spinner" style="margin:0 auto 16px;border-top-color:#0078d4;"></div>PDF laden...</div>';
+    document.getElementById('pdf-footer').textContent = 'Laden...';
+    document.getElementById('pdf-outline').innerHTML = '<div class="outline-title">Inhoudsopgave</div>';
+    document.getElementById('pdf-search-info').textContent = '';
+
+    if (outlineVisible) toggleOutline();
+    if (searchVisible) toggleSearch();
+
     document.getElementById('pdf-overlay').classList.add('active');
-    document.getElementById('pdf-frame').src = '';
 
     try {
         const response = await fetch(url);
-        const blob = await response.blob();
-        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = URL.createObjectURL(blob);
-        document.getElementById('pdf-frame').src = '/pdfjs/web/viewer.html?file=' + encodeURIComponent(currentBlobUrl);
+        const arrayBuffer = await response.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+        document.getElementById('pdf-footer').textContent =
+            `${pdfDoc.numPages} pagina${pdfDoc.numPages !== 1 ? "'s" : ''}`;
+
+        const outline = await pdfDoc.getOutline();
+        renderOutline(outline);
+
+        await renderAllPages();
     } catch(e) {
-        console.error('PDF laden mislukt:', e);
+        document.getElementById('pdf-pages').innerHTML =
+            `<div style="color:#f66;padding:32px;text-align:center;">Fout bij laden: ${e.message}</div>`;
     }
+}
+
+async function renderAllPages() {
+    const container = document.getElementById('pdf-pages');
+    container.innerHTML = '';
+
+    for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale: 1.5 });
+
+        const wrapper = document.createElement('div');
+        wrapper.id = `pdf-page-${i}`;
+        wrapper.className = 'pdf-page-wrapper';
+
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.maxWidth = '100%';
+        canvas.style.height = 'auto';
+
+        wrapper.appendChild(canvas);
+        container.appendChild(wrapper);
+
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        await new Promise(r => setTimeout(r, 0));
+    }
+}
+
+function renderOutline(outline) {
+    const el = document.getElementById('pdf-outline');
+    el.innerHTML = '<div class="outline-title">Inhoudsopgave</div>';
+
+    if (!outline || outline.length === 0) {
+        el.innerHTML += '<div style="padding:12px 14px;color:#666;font-size:13px;">Geen inhoudsopgave beschikbaar</div>';
+        return;
+    }
+    el.innerHTML += buildOutlineHTML(outline, false);
+}
+
+function buildOutlineHTML(items, isChild) {
+    return items.map(item => {
+        const cls = isChild ? 'outline-item outline-child' : 'outline-item';
+        const dest = item.dest ? JSON.stringify(item.dest).replace(/'/g, "&#39;") : 'null';
+        let html = `<div class="${cls}" onclick='goToOutlineItem(${dest})'>${item.title || '—'}</div>`;
+        if (item.items && item.items.length) html += buildOutlineHTML(item.items, true);
+        return html;
+    }).join('');
+}
+
+async function goToOutlineItem(dest) {
+    if (!dest || !pdfDoc) return;
+    try {
+        let destination = dest;
+        if (typeof dest === 'string') destination = await pdfDoc.getDestination(dest);
+        if (Array.isArray(destination) && destination.length > 0) {
+            const pageIndex = await pdfDoc.getPageIndex(destination[0]);
+            const el = document.getElementById(`pdf-page-${pageIndex + 1}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    } catch(e) {}
+}
+
+async function searchPdf() {
+    const query = document.getElementById('pdf-search-input').value.toLowerCase().trim();
+    if (!query || !pdfDoc) return;
+
+    document.getElementById('pdf-search-info').textContent = '...';
+    searchResults = [];
+
+    for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const content = await page.getTextContent();
+        const text = content.items.map(item => item.str).join(' ').toLowerCase();
+        if (text.includes(query)) searchResults.push(i);
+    }
+
+    if (searchResults.length === 0) {
+        document.getElementById('pdf-search-info').textContent = 'Niet gevonden';
+        searchIdx = -1;
+    } else {
+        searchIdx = 0;
+        scrollToSearchResult();
+    }
+}
+
+function scrollToSearchResult() {
+    const el = document.getElementById(`pdf-page-${searchResults[searchIdx]}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('pdf-search-info').textContent = `${searchIdx + 1} / ${searchResults.length}`;
+}
+
+function searchNext() {
+    if (!searchResults.length) return;
+    searchIdx = (searchIdx + 1) % searchResults.length;
+    scrollToSearchResult();
+}
+
+function searchPrev() {
+    if (!searchResults.length) return;
+    searchIdx = (searchIdx - 1 + searchResults.length) % searchResults.length;
+    scrollToSearchResult();
+}
+
+function toggleOutline() {
+    outlineVisible = !outlineVisible;
+    document.getElementById('pdf-outline').classList.toggle('visible', outlineVisible);
+}
+
+function toggleSearch() {
+    searchVisible = !searchVisible;
+    document.getElementById('pdf-search-bar').classList.toggle('visible', searchVisible);
+    if (searchVisible) document.getElementById('pdf-search-input').focus();
 }
 
 function closePdf() {
     document.getElementById('pdf-overlay').classList.remove('active');
-    document.getElementById('pdf-frame').src = '';
-    if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
+    pdfDoc = null;
+    searchResults = [];
+    document.getElementById('pdf-pages').innerHTML = '';
+    if (outlineVisible) toggleOutline();
+    if (searchVisible) toggleSearch();
 }
+
+// ─── Image Viewer ──────────────────────────────────────────────────────────────
 
 function openImage(url, name) {
     document.getElementById('img-title').textContent = name;
@@ -279,14 +457,12 @@ function closeImg() {
     document.getElementById('img-viewer').src = '';
 }
 
+// ─── UI helpers ────────────────────────────────────────────────────────────────
+
 function show(id) {
     ['login-screen', 'loading', 'file-list'].forEach(s => {
         const el = document.getElementById(s);
-        if (s === id) {
-            el.style.display = s === 'file-list' ? 'block' : 'flex';
-        } else {
-            el.style.display = 'none';
-        }
+        el.style.display = s === id ? (s === 'file-list' ? 'block' : 'flex') : 'none';
     });
 }
 
@@ -296,7 +472,9 @@ function showError(msg) {
         `<div style="padding:32px;text-align:center;color:#d13438;">Fout: ${msg}</div>`;
 }
 
-// Service worker disabled until HTTPS with valid cert is configured
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
 
 init();
 </script>
