@@ -122,7 +122,7 @@
         /* Folder grid */
         #folders-row {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
             gap: 12px;
         }
         .folder-card {
@@ -252,8 +252,8 @@
             height: 56px;
         }
         .pdf-close {
-            background: rgba(255,255,255,0.09); border: none; color: #bbb;
-            width: 44px; height: 44px; border-radius: 10px; font-size: 20px;
+            background: rgba(255,255,255,0.09); border: none; color: #ddd;
+            width: 48px; height: 48px; border-radius: 10px; font-size: 26px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; flex-shrink: 0; transition: background 0.15s, color 0.15s;
             -webkit-tap-highlight-color: transparent;
@@ -263,7 +263,7 @@
             font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden;
             text-overflow: ellipsis; color: #dedede;
         }
-        #pdf-page-count { font-size: 12px; color: #555; flex-shrink: 0; }
+        #pdf-page-count { font-size: 14px; color: #aaa; flex-shrink: 0; }
 
         /* Body + content */
         #pdf-body { flex:1; display:flex; overflow:hidden; position:relative; }
@@ -414,6 +414,7 @@
         <button id="login-btn" onclick="login()">Inloggen met Microsoft</button>
     </div>
     <div id="content">
+        <div id="ptr-indicator" style="display:none;text-align:center;padding:8px 0 4px;color:var(--tertiary);font-size:13px;"></div>
         <div class="sec" id="sec-folders" style="display:none">
             <div class="sec-label">Mappen</div>
             <div id="folders-row"></div>
@@ -867,6 +868,35 @@ function showErr(msg){
 }
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+(function(){
+    const ct = document.getElementById('content');
+    const ind = document.getElementById('ptr-indicator');
+    let startY = 0, curY = 0, active = false;
+    const THRESHOLD = 72;
+    ct.addEventListener('touchstart', e => {
+        if (ct.scrollTop === 0 && e.touches.length === 1) {
+            startY = curY = e.touches[0].clientY; active = true;
+        }
+    }, {passive:true});
+    ct.addEventListener('touchmove', e => {
+        if (!active) return;
+        curY = e.touches[0].clientY;
+        const dy = curY - startY;
+        if (dy > 10) {
+            ind.textContent = dy > THRESHOLD ? '↑ Loslaten om te vernieuwen' : '↓ Trek omlaag om te vernieuwen';
+            ind.style.display = 'block';
+        }
+    }, {passive:true});
+    ct.addEventListener('touchend', () => {
+        if (!active) return;
+        active = false;
+        ind.style.display = 'none';
+        if (curY - startY > THRESHOLD && crumbs.length)
+            loadFolder(crumbs[crumbs.length-1].id);
+    }, {passive:true});
+})();
+
 init();
 </script>
 </body>

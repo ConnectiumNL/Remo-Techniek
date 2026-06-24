@@ -1,10 +1,17 @@
-const CACHE = 'docviewer-v2';
-const PRECACHE = ['./', './index.html', './manifest.json'];
+const CACHE = 'remo-v1';
+const STATIC = [
+    './manifest.json',
+    './icons/icon-folder.svg',
+    './icons/icon-pdf.svg',
+    './icons/icon-image.svg',
+    './icons/favicon.ico',
+    './icons/favicon-16x16.png',
+    './icons/favicon-32x32.png',
+    './icons/apple-touch-icon.png',
+];
 
 self.addEventListener('install', e => {
-    e.waitUntil(
-        caches.open(CACHE).then(cache => cache.addAll(PRECACHE))
-    );
+    e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC).catch(() => {})));
     self.skipWaiting();
 });
 
@@ -19,11 +26,29 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
-    if (url.origin !== location.origin) {
-        e.respondWith(fetch(e.request));
+
+    // Always fetch HTML fresh from network so updates land immediately
+    if (e.request.mode === 'navigate') {
+        e.respondWith(
+            fetch(e.request)
+                .then(r => { caches.open(CACHE).then(c => c.put(e.request, r.clone())); return r; })
+                .catch(() => caches.match(e.request))
+        );
         return;
     }
-    e.respondWith(
-        caches.match(e.request).then(cached => cached || fetch(e.request))
-    );
+
+    // Cache-first for local static assets (icons, manifest)
+    if (url.origin === self.location.origin) {
+        e.respondWith(
+            caches.match(e.request).then(hit =>
+                hit || fetch(e.request).then(r => {
+                    caches.open(CACHE).then(c => c.put(e.request, r.clone()));
+                    return r;
+                })
+            )
+        );
+        return;
+    }
+
+    // External (CDN, Graph API, SharePoint) — always network, never cache
 });
