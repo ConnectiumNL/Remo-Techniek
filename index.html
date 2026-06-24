@@ -273,7 +273,8 @@
         .ol-item { padding:14px 16px; cursor:pointer; font-size:14px; color:#aaa; border-bottom:0.5px solid rgba(255,255,255,0.04); line-height:1.35; transition:background 0.1s,color 0.1s; }
         .ol-item:hover { background:rgba(0,190,53,0.12); color:#6eff96; }
         .ol-child { padding-left:28px; font-size:13px; color:#666; }
-        #pdf-pages { flex:1; overflow-y:auto; overflow-x:auto; padding:20px 20px 120px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+        #pdf-pages { flex:1; overflow-y:auto; overflow-x:auto; }
+        #pdf-scaler { display:flex; flex-direction:column; align-items:center; gap:16px; padding:20px 20px 120px; }
         .pg-wrap { box-shadow:0 4px 24px rgba(0,0,0,0.5); background:#fff; max-width:none; flex-shrink:0; position:relative; }
         .pg-wrap canvas { display:block; }
         .textLayer {
@@ -346,7 +347,10 @@
         #pdf-zoom-label {
             font-size: 13px; font-weight: 600; color: #777;
             min-width: 46px; text-align: center; letter-spacing: 0.2px;
+            cursor: pointer; border-radius: 8px; padding: 4px 2px;
+            transition: background 0.15s, color 0.15s;
         }
+        #pdf-zoom-label:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .tb-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.1); margin: 0 4px; flex-shrink:0; }
 
         /* Image Viewer */
@@ -435,7 +439,7 @@
     </div>
     <div id="pdf-body">
         <div id="pdf-outline"><div class="ol-hdr">Inhoudsopgave</div></div>
-        <div id="pdf-pages"></div>
+        <div id="pdf-pages"><div id="pdf-scaler"></div></div>
         <div id="pdf-search-bar">
             <input id="pdf-q" type="text" placeholder="Zoeken in document…" onkeydown="if(event.key==='Enter')doSearch()">
             <button class="pdf-go" onclick="doSearch()">Zoek</button>
@@ -444,9 +448,9 @@
             <span id="pdf-info"></span>
         </div>
         <div id="pdf-toolbar">
-            <button class="tb-btn" onclick="zoomPdf(-0.25)" aria-label="Zoom out">&#8722;</button>
-            <span id="pdf-zoom-label">100%</span>
-            <button class="tb-btn" onclick="zoomPdf(0.25)" aria-label="Zoom in">&#43;</button>
+            <button class="tb-btn" onclick="zoomPdf(-1)" aria-label="Zoom out">&#8722;</button>
+            <span id="pdf-zoom-label" onclick="zoomPdf(0)" title="Reset zoom">100%</span>
+            <button class="tb-btn" onclick="zoomPdf(1)" aria-label="Zoom in">&#43;</button>
             <div class="tb-sep"></div>
             <button class="tb-btn" id="pdf-search-btn" onclick="toggleSearch()" aria-label="Zoeken">&#128269;</button>
             <button class="tb-btn" id="pdf-outline-btn" onclick="toggleOutline()" aria-label="Inhoudsopgave">&#9776;</button>
@@ -488,8 +492,8 @@ let driveId=null, rootId=null;
 let crumbs=[], items=[];
 let pdfDoc=null, hits=[], hitIdx=-1;
 let showOutline=false, showSearch=false;
-let pdfScale=1.5, pdfFitScale=1.5;
-let reRenderTimer=null, lastSearchQ='';
+let pdfScale=1.5, pdfFitScale=1.5, pdfRenderScale=1.5;
+let reRenderTimer=null, lastSearchQ='', currentPage=1;
 
 async function init() {
     show('loading');
@@ -639,10 +643,10 @@ async function navTo(i) {
 }
 
 async function openPdf(url,name) {
-    pdfDoc=null; hits=[]; hitIdx=-1; lastSearchQ='';
+    pdfDoc=null; hits=[]; hitIdx=-1; lastSearchQ=''; currentPage=1;
     highlightSearch('');
     document.getElementById('pdf-title').textContent = name;
-    document.getElementById('pdf-pages').innerHTML   = '<div style="color:#444;padding:48px;text-align:center"><div class="spinner" style="margin:0 auto 16px;border-color:#2a2a2a;border-top-color:#00be35"></div><span style="color:#555">PDF laden…</span></div>';
+    document.getElementById('pdf-scaler').innerHTML  = '<div style="color:#444;padding:48px;text-align:center"><div class="spinner" style="margin:0 auto 16px;border-color:#2a2a2a;border-top-color:#00be35"></div><span style="color:#555">PDF laden…</span></div>';
     document.getElementById('pdf-page-count').textContent = '';
     document.getElementById('pdf-outline').innerHTML = '<div class="ol-hdr">Inhoudsopgave</div>';
     document.getElementById('pdf-info').textContent  = '';
@@ -652,17 +656,18 @@ async function openPdf(url,name) {
     try {
         const buf = await (await fetch(url)).arrayBuffer();
         pdfDoc = await pdfjsLib.getDocument({data:buf}).promise;
-        document.getElementById('pdf-page-count').textContent = `${pdfDoc.numPages} p.`;
+        document.getElementById('pdf-page-count').textContent = `1 / ${pdfDoc.numPages}`;
         const firstPage = await pdfDoc.getPage(1);
         const naturalW  = firstPage.getViewport({scale:1}).width;
         const availW    = document.getElementById('pdf-pages').clientWidth - 40;
         pdfFitScale = Math.max(0.5, availW / naturalW);
         pdfScale    = pdfFitScale;
+        pdfRenderScale = pdfFitScale;
         updateZoomLabel();
         renderOutline(await pdfDoc.getOutline());
         await renderPages();
     } catch(e) {
-        document.getElementById('pdf-pages').innerHTML = `<div style="color:#f55;padding:32px;text-align:center">Fout: ${e.message}</div>`;
+        document.getElementById('pdf-scaler').innerHTML = `<div style="color:#f55;padding:32px;text-align:center">Fout: ${e.message}</div>`;
     }
 }
 
@@ -671,17 +676,41 @@ function updateZoomLabel() {
     document.getElementById('pdf-zoom-label').textContent = pct + '%';
 }
 
-function zoomPdf(delta) {
-    pdfScale = Math.max(0.3, Math.min(pdfFitScale * 4, pdfScale + pdfFitScale * delta));
+function zoomPdf(dir) {
+    if (dir === 0) {
+        pdfScale = pdfFitScale;
+    } else {
+        const pct = Math.round((pdfScale / pdfFitScale) * 100);
+        const newPct = dir > 0
+            ? Math.min(400, Math.floor(pct / 10) * 10 + 10)
+            : Math.max(20,  Math.ceil(pct  / 10) * 10 - 10);
+        pdfScale = pdfFitScale * (newPct / 100);
+    }
     updateZoomLabel();
+    const scaler = document.getElementById('pdf-scaler');
+    const from = parseFloat(scaler.style.zoom) || 1;
+    const to   = pdfScale / pdfRenderScale;
     clearTimeout(reRenderTimer);
-    reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 180);
+    animZoom(scaler, from, to, 220, () => {
+        reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 0);
+    });
+}
+function animZoom(el, from, to, ms, done) {
+    const t0 = performance.now();
+    (function step(now) {
+        const p = Math.min(1, (now - t0) / ms);
+        const e = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
+        el.style.zoom = from + (to - from) * e;
+        p < 1 ? requestAnimationFrame(step) : done();
+    })(t0);
 }
 
 async function renderPages() {
-    const c = document.getElementById('pdf-pages');
-    const scrollTop = c.scrollTop;
+    const c = document.getElementById('pdf-scaler');
+    const scrollPage = currentPage || 1;
     c.innerHTML='';
+    c.style.zoom='';
+    pdfRenderScale = pdfScale;
     for (let i=1;i<=pdfDoc.numPages;i++) {
         const pg=await pdfDoc.getPage(i);
         const vp=pg.getViewport({scale:pdfScale});
@@ -702,12 +731,34 @@ async function renderPages() {
         } catch(_){}
         await new Promise(r=>setTimeout(r,0));
     }
-    c.scrollTop = scrollTop;
+    if (scrollPage > 1) {
+        const target = document.getElementById(`pp${scrollPage}`);
+        if (target) target.scrollIntoView();
+    }
     if (lastSearchQ) highlightSearch(lastSearchQ);
+    updateCurrentPage();
+}
+
+function updateCurrentPage() {
+    if (!pdfDoc) return;
+    const c = document.getElementById('pdf-pages');
+    const wraps = c.querySelectorAll('.pg-wrap');
+    if (!wraps.length) return;
+    const cRect = c.getBoundingClientRect();
+    const cMid = cRect.top + cRect.height / 2;
+    let best = 1, bestDist = Infinity;
+    wraps.forEach((w, i) => {
+        const r = w.getBoundingClientRect();
+        const dist = Math.abs((r.top + r.height / 2) - cMid);
+        if (dist < bestDist) { bestDist = dist; best = i + 1; }
+    });
+    currentPage = best;
+    document.getElementById('pdf-page-count').textContent = `${best} / ${pdfDoc.numPages}`;
 }
 
 (function(){
     const pages = document.getElementById('pdf-pages');
+    pages.addEventListener('scroll', updateCurrentPage, {passive:true});
     let p0 = 0, s0 = 1.5;
     pages.addEventListener('touchstart', e => {
         if (e.touches.length === 2) {
@@ -719,8 +770,9 @@ async function renderPages() {
     pages.addEventListener('touchmove', e => {
         if (e.touches.length === 2 && p0 > 0) {
             const pd = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-            pdfScale = Math.max(0.3, Math.min(pdfFitScale*4, s0*(pd/p0)));
+            pdfScale = Math.max(pdfFitScale*0.2, Math.min(pdfFitScale*4, s0*(pd/p0)));
             updateZoomLabel();
+            document.getElementById('pdf-scaler').style.zoom = pdfScale / pdfRenderScale;
             e.preventDefault();
         }
     }, {passive:false});
@@ -728,7 +780,7 @@ async function renderPages() {
         if (p0 > 0 && e.touches.length < 2) {
             p0 = 0;
             clearTimeout(reRenderTimer);
-            reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 250);
+            reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 150);
         }
     }, {passive:true});
 })();
@@ -825,7 +877,8 @@ function closePdf(){
     document.getElementById('pdf-overlay').classList.remove('on');
     pdfDoc=null; hits=[];
     setTimeout(()=>{
-        document.getElementById('pdf-pages').innerHTML='';
+        const scaler = document.getElementById('pdf-scaler');
+        scaler.innerHTML=''; scaler.style.zoom='';
         if(showOutline)toggleOutline();
         if(showSearch)toggleSearch();
     },420);
