@@ -6,6 +6,10 @@
     <title>Cursusmateriaal – Remo</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffffff">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="GPTBot" content="noindex">
+    <meta name="CCBot" content="noindex">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
@@ -51,7 +55,7 @@
             -webkit-backdrop-filter: blur(24px) saturate(180%);
             border-bottom: 0.5px solid var(--sep);
             display: flex; align-items: center;
-            padding: 0 20px; gap: 14px;
+            padding: 0 16px 0 20px; gap: 14px;
         }
         #logo {
             height: 26px; width: auto; cursor: pointer; flex-shrink: 0;
@@ -59,7 +63,17 @@
         }
         #logo:active { opacity: 0.5; }
         #hdr-div { width: 1px; height: 22px; background: var(--sep); }
-        #hdr-sub { font-size: 15px; font-weight: 500; color: var(--secondary); letter-spacing: -0.1px; }
+        #hdr-sub { font-size: 15px; font-weight: 500; color: var(--secondary); letter-spacing: -0.1px; flex: 1; }
+        #exit-btn {
+            background: none; border: none; color: var(--tertiary);
+            width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background 0.15s, color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #exit-btn:hover { background: var(--fill-8); color: var(--label); }
+        #exit-btn:active { background: rgba(60,60,67,0.16); }
+        #exit-btn svg { width: 22px; height: 22px; }
 
         /* Shell */
         #app { padding-top: 60px; height: 100%; display: flex; flex-direction: column; }
@@ -105,28 +119,30 @@
         }
         .sec + .sec { margin-top: 24px; }
 
-        /* Folder list */
+        /* Folder grid */
         #folders-row {
-            display: flex; flex-direction: column; gap: 4px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
         }
         .folder-card {
             background: var(--card); border-radius: var(--radius);
-            padding: 11px 14px;
-            display: flex; flex-direction: row; align-items: center; gap: 12px;
+            padding: 16px 12px 16px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
             cursor: pointer; box-shadow: var(--shadow-sm);
             animation: cardIn 0.3s var(--ease) both;
-            transition: transform 0.18s var(--spring), box-shadow 0.15s var(--ease), background 0.1s;
+            transition: transform 0.22s var(--spring), box-shadow 0.2s var(--ease);
             -webkit-tap-highlight-color: transparent;
         }
-        .folder-card:hover  { background: #f9f9fb; transform: translateX(3px); box-shadow: var(--shadow-md); }
-        .folder-card:active { transform: scale(0.98) !important; transition-duration: 0.1s; }
-        .folder-card img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+        .folder-card:hover  { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-md); }
+        .folder-card:active { transform: scale(0.93) !important; transition-duration: 0.1s; }
+        .folder-card img { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
         .folder-name {
-            font-size: 15px; font-weight: 500; color: var(--label);
-            flex: 1; line-height: 1.3; letter-spacing: -0.2px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 12px; font-weight: 500; color: var(--label);
+            text-align: center; line-height: 1.3; letter-spacing: -0.1px;
+            display: -webkit-box; -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
         }
-        .folder-chevron { color: var(--tertiary); font-size: 18px; flex-shrink: 0; opacity: 0.5; }
 
         /* File grid */
         #files-grid {
@@ -170,7 +186,7 @@
         .file-name {
             font-size: 13px; font-weight: 600; color: var(--label);
             letter-spacing: -0.2px; line-height: 1.35;
-            display: -webkit-box; -webkit-line-clamp: 2;
+            display: -webkit-box; -webkit-line-clamp: 3;
             -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 5px;
         }
         .file-badge {
@@ -225,58 +241,113 @@
             transition: transform 0.4s var(--slide); pointer-events: none;
         }
         #pdf-overlay.on { transform: translateY(0); pointer-events: all; }
+
+        /* PDF top bar */
         #pdf-hdr {
             background: rgba(18,18,18,0.96);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            height: 56px; padding: 0 12px;
-            display: flex; align-items: center; gap: 8px;
+            padding: 0 12px;
+            display: flex; align-items: center; gap: 10px;
             border-bottom: 0.5px solid rgba(255,255,255,0.08); flex-shrink: 0;
+            height: 56px;
         }
         .pdf-close {
-            background: rgba(255,255,255,0.09); border: none; color: #999;
-            width: 34px; height: 34px; border-radius: 50%; font-size: 18px;
+            background: rgba(255,255,255,0.09); border: none; color: #bbb;
+            width: 44px; height: 44px; border-radius: 10px; font-size: 20px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; flex-shrink: 0; transition: background 0.15s, color 0.15s;
+            -webkit-tap-highlight-color: transparent;
         }
         .pdf-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
-        #pdf-title { font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #dedede; }
-        .pdf-hbtn {
-            background: rgba(255,255,255,0.07); border: none; color: #bbb;
-            width: 36px; height: 36px; border-radius: 8px; font-size: 16px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.15s, color 0.15s;
+        #pdf-title {
+            font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; color: #dedede;
         }
-        .pdf-hbtn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-        .pdf-hbtn.on { background: var(--green); color: #fff; }
+        #pdf-page-count { font-size: 12px; color: #555; flex-shrink: 0; }
+
+        /* Body + content */
+        #pdf-body { flex:1; display:flex; overflow:hidden; position:relative; }
+        #pdf-outline { width:260px; background:#141414; overflow-y:auto; flex-shrink:0; border-right:0.5px solid rgba(255,255,255,0.06); display:none; }
+        #pdf-outline.on { display:block; }
+        .ol-hdr { padding:14px 16px; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:0.6px; border-bottom:0.5px solid rgba(255,255,255,0.05); position:sticky; top:0; background:#141414; }
+        .ol-item { padding:14px 16px; cursor:pointer; font-size:14px; color:#aaa; border-bottom:0.5px solid rgba(255,255,255,0.04); line-height:1.35; transition:background 0.1s,color 0.1s; }
+        .ol-item:hover { background:rgba(0,190,53,0.12); color:#6eff96; }
+        .ol-child { padding-left:28px; font-size:13px; color:#666; }
+        #pdf-pages { flex:1; overflow-y:auto; overflow-x:auto; padding:20px 20px 120px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+        .pg-wrap { box-shadow:0 4px 24px rgba(0,0,0,0.5); background:#fff; max-width:none; flex-shrink:0; position:relative; }
+        .pg-wrap canvas { display:block; }
+        .textLayer {
+            position: absolute; top: 0; left: 0;
+            overflow: hidden; pointer-events: none;
+        }
+        .textLayer span {
+            color: transparent; position: absolute;
+            white-space: pre; cursor: text; transform-origin: 0% 0%;
+        }
+        .textLayer .hl {
+            background: rgba(255,210,0,0.5);
+            border-radius: 2px;
+        }
+        .textLayer .hl-current {
+            background: rgba(255,120,0,0.85);
+            border-radius: 2px;
+        }
+
+        /* Floating search bar */
         #pdf-search-bar {
-            background: #171717; padding: 8px 12px;
-            display: none; align-items: center; gap: 8px;
-            border-bottom: 0.5px solid rgba(255,255,255,0.06); flex-shrink: 0;
+            position: absolute; bottom: 100px;
+            left: 50%; transform: translateX(-50%) translateY(12px);
+            width: calc(100% - 32px); max-width: 500px;
+            background: rgba(22,22,24,0.96);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 0.5px solid rgba(255,255,255,0.1);
+            border-radius: 18px; padding: 10px 12px;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 20;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s var(--ease), transform 0.22s var(--ease);
         }
-        #pdf-search-bar.on { display: flex; }
+        #pdf-search-bar.on { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
         #pdf-q {
             flex: 1; background: rgba(255,255,255,0.09);
             border: 1px solid rgba(255,255,255,0.1); color: #fff;
-            padding: 8px 12px; border-radius: 8px;
-            font-size: 14px; font-family: inherit; outline: none;
+            padding: 10px 14px; border-radius: 10px;
+            font-size: 16px; font-family: inherit; outline: none;
             transition: border-color 0.15s;
         }
         #pdf-q:focus { border-color: var(--green); }
         #pdf-q::placeholder { color: #555; }
-        .pdf-go  { background:var(--green); border:none; color:#fff; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-family:inherit; font-weight:600; }
-        .pdf-nav { background:rgba(255,255,255,0.08); border:none; color:#bbb; padding:8px 10px; border-radius:8px; cursor:pointer; }
-        #pdf-info { color:#666; font-size:13px; min-width:60px; text-align:center; }
-        #pdf-body { flex:1; display:flex; overflow:hidden; }
-        #pdf-outline { width:252px; background:#141414; overflow-y:auto; flex-shrink:0; border-right:0.5px solid rgba(255,255,255,0.06); display:none; }
-        #pdf-outline.on { display:block; }
-        .ol-hdr { padding:12px 16px; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:0.6px; border-bottom:0.5px solid rgba(255,255,255,0.05); position:sticky; top:0; background:#141414; }
-        .ol-item { padding:10px 16px; cursor:pointer; font-size:13px; color:#aaa; border-bottom:0.5px solid rgba(255,255,255,0.04); line-height:1.35; transition:background 0.1s,color 0.1s; }
-        .ol-item:hover { background:rgba(0,190,53,0.12); color:#6eff96; }
-        .ol-child { padding-left:28px; font-size:12px; color:#666; }
-        #pdf-pages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; align-items:center; gap:16px; }
-        .pg-wrap { box-shadow:0 4px 24px rgba(0,0,0,0.5); background:#fff; max-width:100%; }
-        .pg-wrap canvas { display:block; max-width:100%; height:auto; }
-        #pdf-foot { background:#1a1a1a; color:#444; padding:5px 16px; font-size:12px; text-align:center; flex-shrink:0; border-top:0.5px solid rgba(255,255,255,0.05); }
+        .pdf-go  { background:var(--green); border:none; color:#fff; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:15px; font-family:inherit; font-weight:600; flex-shrink:0; }
+        .pdf-nav { background:rgba(255,255,255,0.08); border:none; color:#bbb; width:44px; height:44px; border-radius:10px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        #pdf-info { color:#666; font-size:13px; min-width:50px; text-align:center; flex-shrink:0; }
+
+        /* Floating bottom toolbar */
+        #pdf-toolbar {
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: rgba(22,22,24,0.92);
+            backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border: 0.5px solid rgba(255,255,255,0.12);
+            border-radius: 22px; padding: 8px 10px;
+            display: flex; align-items: center; gap: 4px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 15;
+        }
+        .tb-btn {
+            background: none; border: none; color: #ccc;
+            width: 52px; height: 52px; border-radius: 14px; font-size: 22px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background 0.15s, color 0.15s;
+            -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+        }
+        .tb-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .tb-btn:active { background: rgba(255,255,255,0.18); transform: scale(0.92); }
+        .tb-btn.on { background: var(--green); color: #fff; }
+        #pdf-zoom-label {
+            font-size: 13px; font-weight: 600; color: #777;
+            min-width: 46px; text-align: center; letter-spacing: 0.2px;
+        }
+        .tb-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.1); margin: 0 4px; flex-shrink:0; }
 
         /* Image Viewer */
         #img-overlay {
@@ -290,13 +361,28 @@
         #img-hdr {
             background: rgba(18,18,18,0.96);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            height: 56px; padding: 0 12px;
-            display: flex; align-items: center; gap: 12px;
+            height: 56px; padding: 0 8px;
+            display: flex; align-items: center; gap: 8px;
             border-bottom: 0.5px solid rgba(255,255,255,0.08); flex-shrink: 0;
         }
-        #img-title { font-size:14px; flex:1; color:#dedede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #img-title { font-size:14px; flex:1; color:#dedede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; }
         #img-body { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; padding:24px; }
         #img-el { max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%);
+            background: rgba(30,30,30,0.95); color: #fff;
+            padding: 12px 22px; border-radius: 12px;
+            font-size: 14px; z-index: 999; text-align: center;
+            backdrop-filter: blur(10px);
+            animation: toastIn 0.2s var(--ease) both;
+            pointer-events: none;
+        }
+        @keyframes toastIn {
+            from { opacity:0; transform: translateX(-50%) translateY(10px); }
+            to   { opacity:1; transform: translateX(-50%) translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -311,6 +397,13 @@
     </svg>
     <div id="hdr-div"></div>
     <span id="hdr-sub">Cursusmateriaal</span>
+    <button id="exit-btn" onclick="exitApp()" aria-label="Afsluiten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+    </button>
 </div>
 
 <div id="app">
@@ -337,21 +430,27 @@
     <div id="pdf-hdr">
         <button class="pdf-close" onclick="closePdf()">&#8592;</button>
         <span id="pdf-title"></span>
-        <button class="pdf-hbtn" id="pdf-search-btn" onclick="toggleSearch()">&#128269;</button>
-        <button class="pdf-hbtn" id="pdf-outline-btn" onclick="toggleOutline()">&#9776;</button>
-    </div>
-    <div id="pdf-search-bar">
-        <input id="pdf-q" type="text" placeholder="Zoeken in document…" onkeydown="if(event.key==='Enter')doSearch()">
-        <button class="pdf-go" onclick="doSearch()">Zoek</button>
-        <button class="pdf-nav" onclick="searchPrev()">&#8679;</button>
-        <button class="pdf-nav" onclick="searchNext()">&#8681;</button>
-        <span id="pdf-info"></span>
+        <span id="pdf-page-count"></span>
     </div>
     <div id="pdf-body">
         <div id="pdf-outline"><div class="ol-hdr">Inhoudsopgave</div></div>
         <div id="pdf-pages"></div>
+        <div id="pdf-search-bar">
+            <input id="pdf-q" type="text" placeholder="Zoeken in document…" onkeydown="if(event.key==='Enter')doSearch()">
+            <button class="pdf-go" onclick="doSearch()">Zoek</button>
+            <button class="pdf-nav" onclick="searchPrev()">&#8679;</button>
+            <button class="pdf-nav" onclick="searchNext()">&#8681;</button>
+            <span id="pdf-info"></span>
+        </div>
+        <div id="pdf-toolbar">
+            <button class="tb-btn" onclick="zoomPdf(-0.25)" aria-label="Zoom out">&#8722;</button>
+            <span id="pdf-zoom-label">100%</span>
+            <button class="tb-btn" onclick="zoomPdf(0.25)" aria-label="Zoom in">&#43;</button>
+            <div class="tb-sep"></div>
+            <button class="tb-btn" id="pdf-search-btn" onclick="toggleSearch()" aria-label="Zoeken">&#128269;</button>
+            <button class="tb-btn" id="pdf-outline-btn" onclick="toggleOutline()" aria-label="Inhoudsopgave">&#9776;</button>
+        </div>
     </div>
-    <div id="pdf-foot"></div>
 </div>
 
 <div id="img-overlay">
@@ -388,6 +487,8 @@ let driveId=null, rootId=null;
 let crumbs=[], items=[];
 let pdfDoc=null, hits=[], hitIdx=-1;
 let showOutline=false, showSearch=false;
+let pdfScale=1.5, pdfFitScale=1.5;
+let reRenderTimer=null, lastSearchQ='';
 
 async function init() {
     show('loading');
@@ -426,7 +527,7 @@ async function boot() {
                 if (c?.length && c[c.length-1]?.id) { crumbs = c; await loadFolder(c[c.length-1].id); return; }
             } catch {}
         }
-        crumbs = [{ name:'Vakmanschap CO', id:rootId }];
+        crumbs = [{ name:'Home', id:rootId }];
         await loadFolder(rootId);
     } catch(e) { showErr(e.message); }
 }
@@ -444,7 +545,7 @@ async function loadFolder(id) {
 }
 async function goHome() {
     if (!rootId) return;
-    crumbs = [{ name:'Vakmanschap CO', id:rootId }];
+    crumbs = [{ name:'Home', id:rootId }];
     await loadFolder(rootId);
 }
 
@@ -494,7 +595,6 @@ function renderContent() {
                 onclick='open2(${d.replace(/'/g,"&#39;")})'>
                 <img src="icons/icon-folder.svg" alt="">
                 <span class="folder-name">${item.name}</span>
-                <span class="folder-chevron">›</span>
             </div>`;
         }).join('');
     } else sf.style.display = 'none';
@@ -538,10 +638,11 @@ async function navTo(i) {
 }
 
 async function openPdf(url,name) {
-    pdfDoc=null; hits=[]; hitIdx=-1;
+    pdfDoc=null; hits=[]; hitIdx=-1; lastSearchQ='';
+    highlightSearch('');
     document.getElementById('pdf-title').textContent = name;
     document.getElementById('pdf-pages').innerHTML   = '<div style="color:#444;padding:48px;text-align:center"><div class="spinner" style="margin:0 auto 16px;border-color:#2a2a2a;border-top-color:#00be35"></div><span style="color:#555">PDF laden…</span></div>';
-    document.getElementById('pdf-foot').textContent  = 'Laden…';
+    document.getElementById('pdf-page-count').textContent = '';
     document.getElementById('pdf-outline').innerHTML = '<div class="ol-hdr">Inhoudsopgave</div>';
     document.getElementById('pdf-info').textContent  = '';
     if (showOutline) toggleOutline();
@@ -550,26 +651,87 @@ async function openPdf(url,name) {
     try {
         const buf = await (await fetch(url)).arrayBuffer();
         pdfDoc = await pdfjsLib.getDocument({data:buf}).promise;
-        document.getElementById('pdf-foot').textContent = `${pdfDoc.numPages} pagina${pdfDoc.numPages!==1?"'s":''}`;
+        document.getElementById('pdf-page-count').textContent = `${pdfDoc.numPages} p.`;
+        const firstPage = await pdfDoc.getPage(1);
+        const naturalW  = firstPage.getViewport({scale:1}).width;
+        const availW    = document.getElementById('pdf-pages').clientWidth - 40;
+        pdfFitScale = Math.max(0.5, availW / naturalW);
+        pdfScale    = pdfFitScale;
+        updateZoomLabel();
         renderOutline(await pdfDoc.getOutline());
         await renderPages();
     } catch(e) {
         document.getElementById('pdf-pages').innerHTML = `<div style="color:#f55;padding:32px;text-align:center">Fout: ${e.message}</div>`;
     }
 }
+
+function updateZoomLabel() {
+    const pct = Math.round((pdfScale / pdfFitScale) * 100);
+    document.getElementById('pdf-zoom-label').textContent = pct + '%';
+}
+
+function zoomPdf(delta) {
+    pdfScale = Math.max(0.3, Math.min(pdfFitScale * 4, pdfScale + pdfFitScale * delta));
+    updateZoomLabel();
+    clearTimeout(reRenderTimer);
+    reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 180);
+}
+
 async function renderPages() {
-    const c = document.getElementById('pdf-pages'); c.innerHTML='';
+    const c = document.getElementById('pdf-pages');
+    const scrollTop = c.scrollTop;
+    c.innerHTML='';
     for (let i=1;i<=pdfDoc.numPages;i++) {
         const pg=await pdfDoc.getPage(i);
-        const vp=pg.getViewport({scale:1.5});
+        const vp=pg.getViewport({scale:pdfScale});
         const w=document.createElement('div'); w.id=`pp${i}`; w.className='pg-wrap';
+        w.style.width=vp.width+'px'; w.style.height=vp.height+'px';
         const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
-        cv.style.cssText='display:block;max-width:100%;height:auto';
         w.appendChild(cv); c.appendChild(w);
         await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+        try {
+            const tc=await pg.getTextContent();
+            const tl=document.createElement('div');
+            tl.className='textLayer';
+            tl.style.width=vp.width+'px'; tl.style.height=vp.height+'px';
+            tl.style.setProperty('--scale-factor', vp.scale);
+            w.appendChild(tl);
+            const task=pdfjsLib.renderTextLayer({textContentSource:tc,container:tl,viewport:vp,textDivs:[]});
+            await (task.promise||task);
+        } catch(_){}
         await new Promise(r=>setTimeout(r,0));
     }
+    c.scrollTop = scrollTop;
+    if (lastSearchQ) highlightSearch(lastSearchQ);
 }
+
+(function(){
+    const pages = document.getElementById('pdf-pages');
+    let p0 = 0, s0 = 1.5;
+    pages.addEventListener('touchstart', e => {
+        if (e.touches.length === 2) {
+            p0 = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+            s0 = pdfScale;
+            e.preventDefault();
+        }
+    }, {passive:false});
+    pages.addEventListener('touchmove', e => {
+        if (e.touches.length === 2 && p0 > 0) {
+            const pd = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+            pdfScale = Math.max(0.3, Math.min(pdfFitScale*4, s0*(pd/p0)));
+            updateZoomLabel();
+            e.preventDefault();
+        }
+    }, {passive:false});
+    pages.addEventListener('touchend', e => {
+        if (p0 > 0 && e.touches.length < 2) {
+            p0 = 0;
+            clearTimeout(reRenderTimer);
+            reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 250);
+        }
+    }, {passive:true});
+})();
+
 function renderOutline(ol) {
     const el=document.getElementById('pdf-outline');
     el.innerHTML='<div class="ol-hdr">Inhoudsopgave</div>';
@@ -594,20 +756,55 @@ async function olClick(dest){
         }
     }catch{}
 }
+function escHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 async function doSearch(){
-    const q=document.getElementById('pdf-q').value.toLowerCase().trim();
+    const q=document.getElementById('pdf-q').value.trim();
     if(!q||!pdfDoc)return;
+    const ql=q.toLowerCase();
+    if(ql===lastSearchQ&&hits.length){searchNext();return;}
+    lastSearchQ=ql;
     document.getElementById('pdf-info').textContent='...';
-    hits=[];
+    hits=[]; hitIdx=-1;
+    highlightSearch('');
     for(let i=1;i<=pdfDoc.numPages;i++){
         const txt=(await(await pdfDoc.getPage(i)).getTextContent()).items.map(x=>x.str).join(' ').toLowerCase();
-        if(txt.includes(q))hits.push(i);
+        let pos=0,occ=0;
+        while((pos=txt.indexOf(ql,pos))!==-1){hits.push({page:i,occ:occ++});pos+=ql.length;}
     }
-    if(!hits.length){document.getElementById('pdf-info').textContent='Niet gevonden';hitIdx=-1;}
-    else{hitIdx=0;scrollHit();}
+    if(!hits.length){document.getElementById('pdf-info').textContent='Niet gevonden';}
+    else{hitIdx=0;highlightSearch(q);scrollHit();}
+}
+function highlightSearch(q){
+    document.querySelectorAll('.textLayer span[data-orig]').forEach(el=>{
+        el.textContent=el.dataset.orig; delete el.dataset.orig;
+    });
+    if(!q)return;
+    const ql=q.toLowerCase();
+    document.querySelectorAll('.pg-wrap').forEach(wrap=>{
+        const pg=parseInt(wrap.id.replace('pp',''));
+        let occOnPage=0;
+        wrap.querySelectorAll('.textLayer span').forEach(span=>{
+            const t=span.textContent;
+            if(!t.toLowerCase().includes(ql))return;
+            span.dataset.orig=t;
+            let html='',rem=t,remL=t.toLowerCase(),pos;
+            while((pos=remL.indexOf(ql))!==-1){
+                html+=escHtml(rem.slice(0,pos));
+                html+=`<span class="hl" data-pg="${pg}" data-occ="${occOnPage++}">${escHtml(rem.slice(pos,pos+ql.length))}</span>`;
+                rem=rem.slice(pos+ql.length); remL=remL.slice(pos+ql.length);
+            }
+            html+=escHtml(rem);
+            span.innerHTML=html;
+        });
+    });
 }
 function scrollHit(){
-    document.getElementById(`pp${hits[hitIdx]}`)?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('.textLayer .hl-current').forEach(el=>el.classList.remove('hl-current'));
+    if(!hits.length)return;
+    const h=hits[hitIdx];
+    const el=document.querySelector(`.textLayer .hl[data-pg="${h.page}"][data-occ="${h.occ}"]`);
+    if(el){el.classList.add('hl-current');el.scrollIntoView({behavior:'smooth',block:'center'});}
+    else{document.getElementById(`pp${h.page}`)?.scrollIntoView({behavior:'smooth',block:'start'});}
     document.getElementById('pdf-info').textContent=`${hitIdx+1} / ${hits.length}`;
 }
 function searchNext(){if(hits.length){hitIdx=(hitIdx+1)%hits.length;scrollHit();}}
@@ -625,7 +822,7 @@ function toggleSearch(){
 }
 function closePdf(){
     document.getElementById('pdf-overlay').classList.remove('on');
-    pdfDoc=null;hits=[];
+    pdfDoc=null; hits=[];
     setTimeout(()=>{
         document.getElementById('pdf-pages').innerHTML='';
         if(showOutline)toggleOutline();
@@ -641,6 +838,17 @@ function openImg(url,name){
 function closeImg(){
     document.getElementById('img-overlay').classList.remove('on');
     setTimeout(()=>{document.getElementById('img-el').src='';},420);
+}
+
+function exitApp(){
+    window.close();
+    setTimeout(()=>{
+        const t=document.createElement('div');
+        t.className='toast';
+        t.textContent='Gebruik de terugknop of thuisknop om te sluiten';
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(),3500);
+    },300);
 }
 
 function show(id){
