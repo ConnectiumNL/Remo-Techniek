@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Cursusmateriaal – Remo</title>
+    <title>Cursusmateriaal &ndash; Remo</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffffff">
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
@@ -11,11 +11,9 @@
     <meta name="GPTBot" content="noindex">
     <meta name="CCBot" content="noindex">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
-    <link rel="icon" href="icons/favicon.ico">
     <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         :root {
             --bg:         #f2f2f7;
@@ -45,8 +43,6 @@
             -webkit-user-select: none; user-select: none;
             color: var(--label);
         }
-
-        /* Header */
         #header {
             position: fixed; top: 0; left: 0; right: 0; z-index: 20;
             height: 60px;
@@ -57,28 +53,22 @@
             display: flex; align-items: center;
             padding: 0 16px 0 20px; gap: 14px;
         }
-        #logo {
-            height: 26px; width: auto; cursor: pointer; flex-shrink: 0;
-            transition: opacity 0.15s var(--ease);
-        }
+        #logo { height: 26px; width: auto; cursor: pointer; flex-shrink: 0; transition: opacity 0.15s var(--ease); }
         #logo:active { opacity: 0.5; }
         #hdr-div { width: 1px; height: 22px; background: var(--sep); }
         #hdr-sub { font-size: 15px; font-weight: 500; color: var(--secondary); letter-spacing: -0.1px; flex: 1; }
-        #exit-btn {
+        #exit-btn, #qr-btn {
             background: none; border: none; color: var(--tertiary);
             width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: background 0.15s, color 0.15s;
             -webkit-tap-highlight-color: transparent;
         }
-        #exit-btn:hover { background: var(--fill-8); color: var(--label); }
-        #exit-btn:active { background: rgba(60,60,67,0.16); }
-        #exit-btn svg { width: 22px; height: 22px; }
-
-        /* Shell */
+        #qr-btn { display: none; }
+        #exit-btn:hover, #qr-btn:hover { background: var(--fill-8); color: var(--label); }
+        #exit-btn:active, #qr-btn:active { background: rgba(60,60,67,0.16); }
+        #exit-btn svg, #qr-btn svg { width: 22px; height: 22px; }
         #app { padding-top: 60px; height: 100%; display: flex; flex-direction: column; }
-
-        /* Breadcrumb */
         #breadcrumb {
             background: var(--bg); padding: 0 16px; height: 40px;
             display: flex; align-items: center;
@@ -87,185 +77,57 @@
             scrollbar-width: none; flex-shrink: 0;
         }
         #breadcrumb::-webkit-scrollbar { display: none; }
-        .crumb {
-            font-size: 13px; color: var(--tertiary);
-            padding: 4px 9px; border-radius: 7px;
-            cursor: pointer; white-space: nowrap; flex-shrink: 0;
-            transition: background 0.15s, color 0.15s;
-        }
+        .crumb { font-size: 13px; color: var(--tertiary); padding: 4px 9px; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background 0.15s, color 0.15s; }
         .crumb:not(.active):hover { background: var(--fill-8); color: var(--label); }
         .crumb.active { color: var(--green); font-weight: 600; cursor: default; }
         .crumb-sep { color: var(--sep); font-size: 15px; flex-shrink: 0; padding: 0 1px; }
-
-        /* Content */
-        #content {
-            flex: 1; overflow-y: auto; overflow-x: hidden;
-            padding: 16px 16px 40px; display: none;
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
-        }
+        #content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 16px 40px; display: none; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
         #content.on { display: block; }
         #content.enter { animation: pageIn 0.28s var(--ease) both; }
-        @keyframes pageIn {
-            from { opacity: 0; transform: translateY(14px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Section labels */
-        .sec-label {
-            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-            text-transform: uppercase; color: var(--tertiary);
-            margin-bottom: 10px; padding: 0 2px;
-        }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .sec-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--tertiary); margin-bottom: 10px; padding: 0 2px; }
         .sec + .sec { margin-top: 24px; }
-
-        /* Folder grid */
-        #folders-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-            gap: 12px;
-        }
-        .folder-card {
-            background: var(--card); border-radius: var(--radius);
-            padding: 16px 12px 16px;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            cursor: pointer; box-shadow: var(--shadow-sm);
-            animation: cardIn 0.3s var(--ease) both;
-            transition: transform 0.22s var(--spring), box-shadow 0.2s var(--ease);
-            -webkit-tap-highlight-color: transparent;
-        }
+        #folders-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
+        .folder-card { background: var(--card); border-radius: var(--radius); padding: 16px 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; box-shadow: var(--shadow-sm); animation: cardIn 0.3s var(--ease) both; transition: transform 0.22s var(--spring), box-shadow 0.2s var(--ease); -webkit-tap-highlight-color: transparent; }
         .folder-card:hover  { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-md); }
         .folder-card:active { transform: scale(0.93) !important; transition-duration: 0.1s; }
         .folder-card img { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
-        .folder-name {
-            font-size: 12px; font-weight: 500; color: var(--label);
-            text-align: center; line-height: 1.3; letter-spacing: -0.1px;
-            display: -webkit-box; -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
-        }
-
-        /* File grid */
-        #files-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-            gap: 12px;
-        }
-        .file-card {
-            background: var(--card); border-radius: var(--radius);
-            overflow: hidden; box-shadow: var(--shadow-sm);
-            cursor: pointer; display: flex; flex-direction: column;
-            outline: 2px solid transparent; outline-offset: -2px;
-            animation: cardIn 0.3s var(--ease) both;
-            transition: transform 0.25s var(--spring), box-shadow 0.22s var(--ease), outline-color 0.15s;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .folder-name { font-size: 12px; font-weight: 500; color: var(--label); text-align: center; line-height: 1.3; letter-spacing: -0.1px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+        #files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
+        .file-card { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer; display: flex; flex-direction: column; outline: 2px solid transparent; outline-offset: -2px; animation: cardIn 0.3s var(--ease) both; transition: transform 0.25s var(--spring), box-shadow 0.22s var(--ease), outline-color 0.15s; -webkit-tap-highlight-color: transparent; }
         .file-card:hover  { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); outline-color: var(--green); }
         .file-card:active { transform: scale(0.95) !important; transition-duration: 0.1s; }
-
-        .file-thumb {
-            width: 100%; aspect-ratio: 4/3;
-            display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; flex-shrink: 0;
-            background: #f5f5f7;
-        }
+        .file-thumb { width: 100%; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex-shrink: 0; background: #f5f5f7; }
         .file-thumb.pdf   { background: linear-gradient(150deg,#fff0f0,#fce4e4); }
         .file-thumb.image { background: linear-gradient(150deg,#eaf6f3,#d4ede9); }
         .file-thumb.other { background: linear-gradient(150deg,#f5f5f7,#ebebed); }
-
         .file-thumb .ico { width: 52px; height: 52px; object-fit: contain; z-index: 1; flex-shrink: 0; }
         .file-thumb svg  { width: 48px; height: 48px; z-index: 1; }
-
-        .file-thumb .thmb {
-            width: 100%; height: 100%; object-fit: cover;
-            position: absolute; top: 0; left: 0; z-index: 2;
-            transition: transform 0.35s var(--ease);
-        }
+        .file-thumb .thmb { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2; transition: transform 0.35s var(--ease); }
         .file-card:hover .file-thumb .thmb { transform: scale(1.07); }
-
         .file-info { padding: 10px 12px 12px; }
-        .file-name {
-            font-size: 13px; font-weight: 600; color: var(--label);
-            letter-spacing: -0.2px; line-height: 1.35;
-            display: -webkit-box; -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 5px;
-        }
-        .file-badge {
-            display: inline-block; font-size: 10px; font-weight: 700;
-            letter-spacing: 0.4px; text-transform: uppercase;
-            padding: 2px 7px; border-radius: 5px;
-        }
+        .file-name { font-size: 13px; font-weight: 600; color: var(--label); letter-spacing: -0.2px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 5px; }
+        .file-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; }
         .file-badge.pdf   { background:#ffe4e4; color:#c41230; }
         .file-badge.image { background:#d4ede9; color:#00897b; }
         .file-badge.other { background:var(--fill-8); color:var(--secondary); }
-
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(14px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
+        @keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
         #empty { display:none; padding:80px 20px; text-align:center; color:var(--tertiary); font-size:15px; }
-
-        #loading {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: calc(100vh - 60px); gap: 16px;
-            color: var(--secondary); font-size: 14px;
-        }
-        .spinner {
-            width: 28px; height: 28px;
-            border: 2.5px solid var(--sep); border-top-color: var(--green);
-            border-radius: 50%; animation: spin 0.72s linear infinite;
-        }
+        #loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 60px); gap: 16px; color: var(--secondary); font-size: 14px; }
+        .spinner { width: 28px; height: 28px; border: 2.5px solid var(--sep); border-top-color: var(--green); border-radius: 50%; animation: spin 0.72s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        #login-screen {
-            display: none; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: calc(100vh - 60px); gap: 20px; padding: 0 40px;
-        }
+        #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 60px); gap: 20px; padding: 0 40px; }
         #login-screen p { color: var(--secondary); font-size: 15px; text-align: center; }
-        #login-btn {
-            background: var(--green); color: white; border: none;
-            padding: 13px 28px; font-size: 16px; border-radius: 12px;
-            cursor: pointer; font-family: inherit; font-weight: 600; letter-spacing: -0.2px;
-            transition: background 0.15s, transform 0.15s;
-        }
+        #login-btn { background: var(--green); color: white; border: none; padding: 13px 28px; font-size: 16px; border-radius: 12px; cursor: pointer; font-family: inherit; font-weight: 600; letter-spacing: -0.2px; transition: background 0.15s, transform 0.15s; }
         #login-btn:hover { background: var(--green-dark); transform: translateY(-1px); }
         #login-btn:active { transform: scale(0.96); }
-
-        /* PDF Viewer */
-        #pdf-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: #111; z-index: 100;
-            display: flex; flex-direction: column;
-            transform: translateY(105%);
-            transition: transform 0.4s var(--slide); pointer-events: none;
-        }
+        #pdf-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #111; z-index: 100; display: flex; flex-direction: column; transform: translateY(105%); transition: transform 0.4s var(--slide); pointer-events: none; }
         #pdf-overlay.on { transform: translateY(0); pointer-events: all; }
-
-        /* PDF top bar */
-        #pdf-hdr {
-            background: rgba(18,18,18,0.96);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            padding: 0 12px;
-            display: flex; align-items: center; gap: 10px;
-            border-bottom: 0.5px solid rgba(255,255,255,0.08); flex-shrink: 0;
-            height: 56px;
-        }
-        .pdf-close {
-            background: rgba(255,255,255,0.09); border: none; color: #ddd;
-            width: 48px; height: 48px; border-radius: 10px; font-size: 26px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; flex-shrink: 0; transition: background 0.15s, color 0.15s;
-            -webkit-tap-highlight-color: transparent;
-        }
+        #pdf-hdr { padding: 0 12px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; height: 56px; background: rgba(18,18,18,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+        .pdf-close { background: rgba(255,255,255,0.09); border: none; color: #ddd; width: 48px; height: 48px; border-radius: 10px; font-size: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: background 0.15s, color 0.15s; -webkit-tap-highlight-color: transparent; }
         .pdf-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
-        #pdf-title {
-            font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden;
-            text-overflow: ellipsis; color: #dedede;
-        }
+        #pdf-title { font-size: 14px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #dedede; }
         #pdf-page-count { font-size: 14px; color: #aaa; flex-shrink: 0; }
-
-        /* Body + content */
         #pdf-body { flex:1; display:flex; overflow:hidden; position:relative; }
         #pdf-outline { width:260px; background:#141414; overflow-y:auto; flex-shrink:0; border-right:0.5px solid rgba(255,255,255,0.06); display:none; }
         #pdf-outline.on { display:block; }
@@ -277,123 +139,77 @@
         #pdf-scaler { display:flex; flex-direction:column; align-items:center; gap:16px; padding:20px 20px 120px; }
         .pg-wrap { box-shadow:0 4px 24px rgba(0,0,0,0.5); background:#fff; max-width:none; flex-shrink:0; position:relative; }
         .pg-wrap canvas { display:block; }
-        .textLayer {
-            position: absolute; top: 0; left: 0;
-            overflow: hidden; pointer-events: none;
-        }
-        .textLayer span {
-            color: transparent; position: absolute;
-            white-space: pre; cursor: text; transform-origin: 0% 0%;
-        }
-        .textLayer .hl {
-            background: rgba(255,210,0,0.5);
-            border-radius: 2px;
-        }
-        .textLayer .hl-current {
-            background: rgba(255,120,0,0.85);
-            border-radius: 2px;
-        }
-
-        /* Floating search bar */
-        #pdf-search-bar {
-            position: absolute; bottom: 100px;
-            left: 50%; transform: translateX(-50%) translateY(12px);
-            width: calc(100% - 32px); max-width: 500px;
-            background: rgba(22,22,24,0.96);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 0.5px solid rgba(255,255,255,0.1);
-            border-radius: 18px; padding: 10px 12px;
-            display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            z-index: 20;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.2s var(--ease), transform 0.22s var(--ease);
-        }
-        #pdf-search-bar.on { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
-        #pdf-q {
-            flex: 1; background: rgba(255,255,255,0.09);
-            border: 1px solid rgba(255,255,255,0.1); color: #fff;
-            padding: 10px 14px; border-radius: 10px;
-            font-size: 16px; font-family: inherit; outline: none;
-            transition: border-color 0.15s;
-        }
-        #pdf-q:focus { border-color: var(--green); }
-        #pdf-q::placeholder { color: #555; }
+        .textLayer { position:absolute; top:0; left:0; overflow:hidden; pointer-events:none; }
+        .textLayer span { color:transparent; position:absolute; white-space:pre; cursor:text; transform-origin:0% 0%; }
+        .textLayer .hl { background:rgba(255,210,0,0.5); border-radius:2px; }
+        .textLayer .hl-current { background:rgba(255,120,0,0.85); border-radius:2px; }
+        #pdf-search-bar { position:absolute; bottom:100px; left:50%; transform:translateX(-50%) translateY(12px); width:calc(100% - 32px); max-width:500px; background:rgba(22,22,24,0.96); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:0.5px solid rgba(255,255,255,0.1); border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:8px; box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:20; opacity:0; pointer-events:none; transition:opacity 0.2s var(--ease),transform 0.22s var(--ease); }
+        #pdf-search-bar.on { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
+        #pdf-q { flex:1; background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 14px; border-radius:10px; font-size:16px; font-family:inherit; outline:none; transition:border-color 0.15s; }
+        #pdf-q:focus { border-color:var(--green); }
+        #pdf-q::placeholder { color:#555; }
         .pdf-go  { background:var(--green); border:none; color:#fff; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:15px; font-family:inherit; font-weight:600; flex-shrink:0; }
         .pdf-nav { background:rgba(255,255,255,0.08); border:none; color:#bbb; width:44px; height:44px; border-radius:10px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         #pdf-info { color:#666; font-size:13px; min-width:50px; text-align:center; flex-shrink:0; }
-
-        /* Floating bottom toolbar */
-        #pdf-toolbar {
-            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: rgba(22,22,24,0.92);
-            backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
-            border: 0.5px solid rgba(255,255,255,0.12);
-            border-radius: 22px; padding: 8px 10px;
-            display: flex; align-items: center; gap: 4px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 15;
-        }
-        .tb-btn {
-            background: none; border: none; color: #ccc;
-            width: 52px; height: 52px; border-radius: 14px; font-size: 22px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.15s, color 0.15s;
-            -webkit-tap-highlight-color: transparent; flex-shrink: 0;
-        }
-        .tb-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .tb-btn:active { background: rgba(255,255,255,0.18); transform: scale(0.92); }
-        .tb-btn.on { background: var(--green); color: #fff; }
-        #pdf-zoom-label {
-            font-size: 13px; font-weight: 600; color: #777;
-            min-width: 46px; text-align: center; letter-spacing: 0.2px;
-            cursor: pointer; border-radius: 8px; padding: 4px 2px;
-            transition: background 0.15s, color 0.15s;
-        }
-        #pdf-zoom-label:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .tb-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.1); margin: 0 4px; flex-shrink:0; }
-
-        /* Image Viewer */
-        #img-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: #111; z-index: 100;
-            display: flex; flex-direction: column;
-            transform: translateY(105%);
-            transition: transform 0.4s var(--slide); pointer-events: none;
-        }
-        #img-overlay.on { transform: translateY(0); pointer-events: all; }
-        #img-hdr {
-            background: rgba(18,18,18,0.96);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            height: 56px; padding: 0 8px;
-            display: flex; align-items: center; gap: 8px;
-            border-bottom: 0.5px solid rgba(255,255,255,0.08); flex-shrink: 0;
-        }
+        #pdf-toolbar { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(22,22,24,0.92); backdrop-filter:blur(28px) saturate(180%); -webkit-backdrop-filter:blur(28px) saturate(180%); border:0.5px solid rgba(255,255,255,0.12); border-radius:22px; padding:8px 10px; display:flex; align-items:center; gap:4px; box-shadow:0 8px 40px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.3); z-index:15; }
+        .tb-btn { background:none; border:none; color:#ccc; width:52px; height:52px; border-radius:14px; font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.15s,color 0.15s; -webkit-tap-highlight-color:transparent; flex-shrink:0; }
+        .tb-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
+        .tb-btn:active { background:rgba(255,255,255,0.18); transform:scale(0.92); }
+        .tb-btn.on { background:var(--green); color:#fff; }
+        #pdf-zoom-label { font-size:13px; font-weight:600; color:#777; min-width:46px; text-align:center; letter-spacing:0.2px; cursor:pointer; border-radius:8px; padding:4px 2px; transition:background 0.15s,color 0.15s; }
+        #pdf-zoom-label:hover { background:rgba(255,255,255,0.1); color:#fff; }
+        .tb-sep { width:1px; height:30px; background:rgba(255,255,255,0.1); margin:0 4px; flex-shrink:0; }
+        #img-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:#111; z-index:100; display:flex; flex-direction:column; transform:translateY(105%); transition:transform 0.4s var(--slide); pointer-events:none; }
+        #img-overlay.on { transform:translateY(0); pointer-events:all; }
+        #img-hdr { background:rgba(18,18,18,0.96); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); height:56px; padding:0 8px; display:flex; align-items:center; gap:8px; border-bottom:0.5px solid rgba(255,255,255,0.08); flex-shrink:0; }
         #img-title { font-size:14px; flex:1; color:#dedede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; }
         #img-body { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; padding:24px; }
         #img-el { max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; }
-
-        /* Toast */
-        .toast {
-            position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%);
-            background: rgba(30,30,30,0.95); color: #fff;
-            padding: 12px 22px; border-radius: 12px;
-            font-size: 14px; z-index: 999; text-align: center;
-            backdrop-filter: blur(10px);
-            animation: toastIn 0.2s var(--ease) both;
-            pointer-events: none;
-        }
-        @keyframes toastIn {
-            from { opacity:0; transform: translateX(-50%) translateY(10px); }
-            to   { opacity:1; transform: translateX(-50%) translateY(0); }
-        }
+        #qr-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:#000; z-index:100; display:flex; flex-direction:column; transform:translateY(105%); transition:transform 0.4s var(--slide); pointer-events:none; }
+        #qr-overlay.on { transform:translateY(0); pointer-events:all; }
+        #qr-hdr { background:rgba(18,18,18,0.96); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:0 12px; height:56px; display:flex; align-items:center; gap:10px; border-bottom:0.5px solid rgba(255,255,255,0.08); flex-shrink:0; }
+        #qr-hdr-title { font-size:15px; color:#ddd; font-weight:500; flex:1; }
+        #qr-body { flex:1; position:relative; overflow:hidden; background:#000; }
+        #qr-video { width:100%; height:100%; object-fit:cover; display:block; }
+        #qr-canvas { display:none; }
+        #qr-aim { position:absolute; top:50%; left:50%; transform:translate(-50%,-62%); width:220px; height:220px; pointer-events:none; }
+        .qr-corner { position:absolute; width:44px; height:44px; border-color:var(--green); border-style:solid; }
+        .qr-corner.tl { top:0; left:0;  border-width:3px 0 0 3px; border-radius:5px 0 0 0; }
+        .qr-corner.tr { top:0; right:0; border-width:3px 3px 0 0; border-radius:0 5px 0 0; }
+        .qr-corner.bl { bottom:0; left:0;  border-width:0 0 3px 3px; border-radius:0 0 0 5px; }
+        .qr-corner.br { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 5px 0; }
+        #qr-scan-line { position:absolute; left:8px; right:8px; height:2px; background:linear-gradient(90deg,transparent,var(--green),transparent); box-shadow:0 0 8px var(--green); animation:qrScan 2s ease-in-out infinite; }
+        @keyframes qrScan { 0% { top:8px; opacity:0; } 8% { opacity:1; } 92% { opacity:1; } 100% { top:210px; opacity:0; } }
+        #qr-status { position:absolute; bottom:52%; left:0; right:0; margin-top:130px; text-align:center; color:rgba(255,255,255,0.75); font-size:14px; pointer-events:none; padding-top:8px; text-shadow:0 1px 4px rgba(0,0,0,0.9); }
+        #qr-result { position:absolute; bottom:0; left:0; right:0; background:rgba(14,14,14,0.97); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-top:0.5px solid rgba(255,255,255,0.1); padding:20px 20px 36px; display:none; flex-direction:column; gap:12px; transform:translateY(8px); transition:transform 0.22s var(--ease), opacity 0.2s; opacity:0; }
+        #qr-result.on { display:flex; transform:translateY(0); opacity:1; }
+        #qr-result-label { font-size:11px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#444; }
+        #qr-result-text { color:#ccc; font-size:13px; word-break:break-all; line-height:1.4; max-height:52px; overflow:hidden; }
+        .qr-btn { border:none; padding:14px 20px; border-radius:13px; font-size:15px; font-family:inherit; font-weight:600; cursor:pointer; transition:background 0.15s, transform 0.1s; -webkit-tap-highlight-color:transparent; }
+        .qr-btn:active { transform:scale(0.96); }
+        .qr-btn.primary { background:var(--green); color:#fff; }
+        .qr-btn.primary:hover { background:var(--green-dark); }
+        .qr-btn.secondary { background:rgba(255,255,255,0.08); color:#bbb; }
+        .qr-btn.secondary:hover { background:rgba(255,255,255,0.14); color:#fff; }
+        #web-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:#fff; z-index:100; display:flex; flex-direction:column; transform:translateY(105%); transition:transform 0.4s var(--slide); pointer-events:none; }
+        #web-overlay.on { transform:translateY(0); pointer-events:all; }
+        #web-hdr { background:rgba(18,18,18,0.96); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:0 12px; height:56px; display:flex; align-items:center; gap:10px; border-bottom:0.5px solid rgba(255,255,255,0.08); flex-shrink:0; }
+        #web-url { flex:1; font-size:12px; color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #web-ext-btn { background:rgba(255,255,255,0.09); border:none; color:#bbb; width:44px; height:44px; border-radius:10px; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background 0.15s,color 0.15s; -webkit-tap-highlight-color:transparent; }
+        #web-ext-btn:hover { background:rgba(255,255,255,0.18); color:#fff; }
+        #web-frame { flex:1; border:none; width:100%; display:block; background:#fff; }
+        #web-blocked { flex:1; display:none; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:40px; background:#111; text-align:center; }
+        #web-blocked svg { width:48px; height:48px; color:#333; margin-bottom:8px; }
+        #web-blocked p { color:#666; font-size:15px; line-height:1.5; }
+        #web-open-btn { background:var(--green); border:none; color:#fff; padding:13px 28px; border-radius:12px; font-size:15px; font-family:inherit; font-weight:600; cursor:pointer; transition:background 0.15s; }
+        #web-open-btn:hover { background:var(--green-dark); }
+        .toast { position:fixed; bottom:48px; left:50%; transform:translateX(-50%); background:rgba(30,30,30,0.95); color:#fff; padding:12px 22px; border-radius:12px; font-size:14px; z-index:999; text-align:center; backdrop-filter:blur(10px); animation:toastIn 0.2s var(--ease) both; pointer-events:none; }
+        @keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
     </style>
 </head>
 <body>
-
 <div id="header">
-    <svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="24.4 24.1 410.8 105"
-         onclick="goHome()" role="button" aria-label="Naar startpagina">
+    <svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="24.4 24.1 410.8 105" onclick="goHome()" role="button" aria-label="Naar startpagina">
         <path fill="#00be35" d="M435.2,24.2h-66.9c-9.3,0-16.8,7.5-16.8,16.8v88s66.9,0,66.9,0c9.3,0,16.8-7.5,16.8-16.8V24.2ZM374.8,105.3v-57.4h37v57.4h-37Z"/>
         <path fill="#00be35" d="M339.5,24.2h-88.1c-9.3,0-16.8,7.5-16.8,16.8v88h24V47.8h17v81.2h22.8V47.8h17v81.2h7.1c9.3,0,16.8-7.5,16.8-16.8V24.2Z"/>
         <path fill="#00be35" d="M163.4,47.8h60.1v-23.7h-66.9c-9.3,0-16.8,7.5-16.8,16.8v88h66.9c9.3,0,16.8-7.5,16.8-16.8v-6.9h-60.1v-16.6s60.1,0,60.1,0v-24.3h-60.1v-16.6Z"/>
@@ -401,115 +217,129 @@
     </svg>
     <div id="hdr-div"></div>
     <span id="hdr-sub">Cursusmateriaal</span>
+    <button id="qr-btn" onclick="openQR()" aria-label="QR-code scannen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/>
+            <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+            <path d="M14 14h3v3h-3z M17 17h3v3h-3z M14 20h3"/>
+        </svg>
+    </button>
     <button id="exit-btn" onclick="exitApp()" aria-label="Afsluiten">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
     </button>
 </div>
-
 <div id="app">
     <div id="breadcrumb"></div>
-    <div id="loading"><div class="spinner"></div><span>Laden…</span></div>
+    <div id="loading"><div class="spinner"></div><span>Laden&hellip;</span></div>
     <div id="login-screen">
-        <p>Verbinden met Microsoft…</p>
+        <p>Verbinden met Microsoft&hellip;</p>
         <button id="login-btn" onclick="login()">Inloggen met Microsoft</button>
     </div>
     <div id="content">
         <div id="ptr-indicator" style="display:none;text-align:center;padding:8px 0 4px;color:var(--tertiary);font-size:13px;"></div>
-        <div class="sec" id="sec-folders" style="display:none">
-            <div class="sec-label">Mappen</div>
-            <div id="folders-row"></div>
-        </div>
-        <div class="sec" id="sec-files" style="display:none">
-            <div class="sec-label">Bestanden</div>
-            <div id="files-grid"></div>
-        </div>
+        <div class="sec" id="sec-folders" style="display:none"><div class="sec-label">Mappen</div><div id="folders-row"></div></div>
+        <div class="sec" id="sec-files" style="display:none"><div class="sec-label">Bestanden</div><div id="files-grid"></div></div>
         <div id="empty">Geen bestanden in deze map</div>
     </div>
 </div>
-
 <div id="pdf-overlay">
     <div id="pdf-hdr">
         <button class="pdf-close" onclick="closePdf()">&#8592;</button>
-        <span id="pdf-title"></span>
-        <span id="pdf-page-count"></span>
+        <span id="pdf-title"></span><span id="pdf-page-count"></span>
     </div>
     <div id="pdf-body">
         <div id="pdf-outline"><div class="ol-hdr">Inhoudsopgave</div></div>
         <div id="pdf-pages"><div id="pdf-scaler"></div></div>
         <div id="pdf-search-bar">
-            <input id="pdf-q" type="text" placeholder="Zoeken in document…" onkeydown="if(event.key==='Enter')doSearch()">
+            <input id="pdf-q" type="text" placeholder="Zoeken in document&hellip;" onkeydown="if(event.key==='Enter')doSearch()">
             <button class="pdf-go" onclick="doSearch()">Zoek</button>
             <button class="pdf-nav" onclick="searchPrev()">&#8679;</button>
             <button class="pdf-nav" onclick="searchNext()">&#8681;</button>
             <span id="pdf-info"></span>
         </div>
         <div id="pdf-toolbar">
-            <button class="tb-btn" onclick="zoomPdf(-1)" aria-label="Zoom out">&#8722;</button>
-            <span id="pdf-zoom-label" onclick="zoomPdf(0)" title="Reset zoom">100%</span>
-            <button class="tb-btn" onclick="zoomPdf(1)" aria-label="Zoom in">&#43;</button>
+            <button class="tb-btn" onclick="zoomPdf(-1)">&#8722;</button>
+            <span id="pdf-zoom-label" onclick="zoomPdf(0)">100%</span>
+            <button class="tb-btn" onclick="zoomPdf(1)">&#43;</button>
             <div class="tb-sep"></div>
-            <button class="tb-btn" id="pdf-search-btn" onclick="toggleSearch()" aria-label="Zoeken">&#128269;</button>
-            <button class="tb-btn" id="pdf-outline-btn" onclick="toggleOutline()" aria-label="Inhoudsopgave">&#9776;</button>
+            <button class="tb-btn" id="pdf-search-btn" onclick="toggleSearch()">&#128269;</button>
+            <button class="tb-btn" id="pdf-outline-btn" onclick="toggleOutline()">&#9776;</button>
         </div>
     </div>
 </div>
-
 <div id="img-overlay">
-    <div id="img-hdr">
-        <button class="pdf-close" onclick="closeImg()">&#8592;</button>
-        <span id="img-title"></span>
-    </div>
+    <div id="img-hdr"><button class="pdf-close" onclick="closeImg()">&#8592;</button><span id="img-title"></span></div>
     <div id="img-body"><img id="img-el" src="" alt=""></div>
 </div>
-
+<div id="qr-overlay">
+    <div id="qr-hdr"><button class="pdf-close" onclick="closeQR()">&#8592;</button><span id="qr-hdr-title">QR-code scannen</span></div>
+    <div id="qr-body">
+        <video id="qr-video" playsinline autoplay muted></video>
+        <canvas id="qr-canvas"></canvas>
+        <div id="qr-aim">
+            <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+            <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+            <div id="qr-scan-line"></div>
+        </div>
+        <div id="qr-status">Richt de camera op een QR-code&hellip;</div>
+        <div id="qr-result">
+            <div id="qr-result-label">Gevonden</div>
+            <div id="qr-result-text"></div>
+            <div id="qr-result-actions"></div>
+        </div>
+    </div>
+</div>
+<div id="web-overlay">
+    <div id="web-hdr">
+        <button class="pdf-close" onclick="closeWeb()">&#8592;</button>
+        <span id="web-url"></span>
+        <button id="web-ext-btn" onclick="openWebExternal()">&#8599;</button>
+    </div>
+    <iframe id="web-frame" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+    <div id="web-blocked">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        <p>Deze website staat het weergeven in een app niet toe.</p>
+        <button id="web-open-btn" onclick="openWebExternal()">Openen in browser</button>
+    </div>
+</div>
 <script>
 document.addEventListener('contextmenu', e => e.preventDefault());
-
 const CLIENT_ID = "f8d8baea-d338-452a-b8e1-59f2eb8e5798";
 const TENANT_ID = "ae41881d-6637-4aa3-ba69-66ead0c703df";
 const SITE_HOST = "remotechniek.sharepoint.com";
 const SITE_PATH = "/sites/COVakmanschap";
 const ROOT_PATH = "Tablets/Vakmanschap CO";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const NATIVE = !!(window.Capacitor?.isNativePlatform?.());
 const msalApp = new msal.PublicClientApplication({
-    auth: {
-        clientId: CLIENT_ID,
-        authority: `https://login.microsoftonline.com/${TENANT_ID}`,
-        redirectUri: window.location.origin + window.location.pathname
-    },
-    cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: true }
+    auth: { clientId: CLIENT_ID, authority: `https://login.microsoftonline.com/${TENANT_ID}`, redirectUri: window.location.origin + window.location.pathname },
+    cache: { cacheLocation: NATIVE ? "localStorage" : "sessionStorage", storeAuthStateInCookie: true }
 });
-
 const SCOPES = ["Sites.Read.All","Files.Read.All"];
-let driveId=null, rootId=null;
-let crumbs=[], items=[];
-let pdfDoc=null, hits=[], hitIdx=-1;
-let showOutline=false, showSearch=false;
+let driveId=null, rootId=null, crumbs=[], items=[];
+let pdfDoc=null, hits=[], hitIdx=-1, showOutline=false, showSearch=false;
 let pdfScale=1.5, pdfFitScale=1.5, pdfRenderScale=1.5;
 let reRenderTimer=null, lastSearchQ='', currentPage=1;
-
 async function init() {
     show('loading');
+    if (NATIVE && !window.location.hash.includes('code=') && !window.location.search.includes('code=')) {
+        const staleKey = Object.keys(localStorage).find(k => k.endsWith('.interaction.status'));
+        if (staleKey) localStorage.removeItem(staleKey);
+    }
     await msalApp.handleRedirectPromise();
     const accs = msalApp.getAllAccounts();
     if (accs.length) { await boot(); return; }
-    try   { await msalApp.ssoSilent({ scopes: SCOPES }); await boot(); }
-    catch { show('login-screen'); }
+    if (!NATIVE) { try { await msalApp.ssoSilent({ scopes: SCOPES }); await boot(); return; } catch {} }
+    show('login-screen');
 }
 async function login() { await msalApp.loginRedirect({ scopes: SCOPES }); }
 async function tok() {
     const a = msalApp.getAllAccounts()[0];
     try { return (await msalApp.acquireTokenSilent({ scopes: SCOPES, account: a })).accessToken; }
-    catch { await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: a }); }
+    catch { if (NATIVE) { show('login-screen'); throw new Error('Token verlopen'); } await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: a }); }
 }
-
 async function gGet(url) {
     const r = await fetch(url, { headers: { Authorization: `Bearer ${await tok()}` } });
     if (!r.ok) throw new Error(`Graph ${r.status}: ${await r.text()}`);
@@ -526,12 +356,7 @@ async function boot() {
         const root = await gGet(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${ROOT_PATH}`);
         rootId = root.id;
         const saved = sessionStorage.getItem('remo_crumbs');
-        if (saved) {
-            try {
-                const c = JSON.parse(saved);
-                if (c?.length && c[c.length-1]?.id) { crumbs = c; await loadFolder(c[c.length-1].id); return; }
-            } catch {}
-        }
+        if (saved) { try { const c = JSON.parse(saved); if (c?.length && c[c.length-1]?.id) { crumbs = c; await loadFolder(c[c.length-1].id); return; } } catch {} }
         crumbs = [{ name:'Home', id:rootId }];
         await loadFolder(rootId);
     } catch(e) { showErr(e.message); }
@@ -539,417 +364,150 @@ async function boot() {
 async function loadFolder(id) {
     show('loading');
     try {
-        const res = await gGet(
-            `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${id}/children?$expand=thumbnails&$orderby=name`
-        );
+        const res = await gGet(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${id}/children?$expand=thumbnails&$orderby=name`);
         items = res.value;
         sessionStorage.setItem('remo_crumbs', JSON.stringify(crumbs));
-        renderBreadcrumb();
-        renderContent();
+        renderBreadcrumb(); renderContent();
     } catch(e) { showErr(e.message); }
 }
-async function goHome() {
-    if (!rootId) return;
-    crumbs = [{ name:'Home', id:rootId }];
-    await loadFolder(rootId);
-}
-
+async function goHome() { if (!rootId) return; crumbs = [{ name:'Home', id:rootId }]; await loadFolder(rootId); }
 function renderBreadcrumb() {
     const bc = document.getElementById('breadcrumb');
     bc.innerHTML = crumbs.map((c,i) => {
-        const last = i===crumbs.length-1;
-        const sep  = i ? '<span class="crumb-sep">›</span>' : '';
+        const last = i===crumbs.length-1, sep = i ? '<span class="crumb-sep">&rsaquo;</span>' : '';
         return `${sep}<span class="crumb${last?' active':''}"${last?'':` onclick="navTo(${i})"`}>${c.name}</span>`;
     }).join('');
     bc.scrollLeft = bc.scrollWidth;
 }
-
 const ICON_OTHER = '<svg viewBox="0 0 24 24"><rect x="4" y="2" width="12" height="18" rx="2" fill="#8a8886"/><path d="M16 2l4 4h-3a1 1 0 01-1-1z" fill="#605e5c"/><rect x="7" y="9" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,0.5)"/><rect x="7" y="12" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,0.5)"/></svg>';
-
 function ftype(name) {
     const e = name.split('.').pop().toLowerCase();
     if (e==='pdf') return {cls:'pdf', icon:'<img src="icons/icon-pdf.svg" class="ico" alt="">', label:'PDF'};
-    if (['jpg','jpeg','png','gif','bmp','webp'].includes(e))
-        return {cls:'image', icon:'<img src="icons/icon-image.svg" class="ico" alt="">', label:'Afbeelding'};
+    if (['jpg','jpeg','png','gif','bmp','webp'].includes(e)) return {cls:'image', icon:'<img src="icons/icon-image.svg" class="ico" alt="">', label:'Afbeelding'};
     return {cls:'other', icon:ICON_OTHER, label:'Bestand'};
 }
-function sorted(arr) {
-    return [...arr].sort((a,b) => {
-        if (!!a.folder !== !!b.folder) return a.folder?-1:1;
-        return a.name.localeCompare(b.name,'nl');
-    });
-}
-
+function sorted(arr) { return [...arr].sort((a,b) => { if (!!a.folder !== !!b.folder) return a.folder?-1:1; return a.name.localeCompare(b.name,'nl'); }); }
 function renderContent() {
-    const folders = sorted(items).filter(i=>i.folder);
-    const files   = sorted(items).filter(i=>!i.folder);
-    const sf = document.getElementById('sec-folders');
-    const sg = document.getElementById('sec-files');
-    const em = document.getElementById('empty');
-    const ct = document.getElementById('content');
-    show('content');
-    ct.classList.remove('enter');
-    void ct.offsetWidth;
-    ct.classList.add('enter');
-
+    document.getElementById('qr-btn').style.display = 'flex';
+    const folders = sorted(items).filter(i=>i.folder), files = sorted(items).filter(i=>!i.folder);
+    const sf=document.getElementById('sec-folders'), sg=document.getElementById('sec-files'), em=document.getElementById('empty'), ct=document.getElementById('content');
+    show('content'); ct.classList.remove('enter'); void ct.offsetWidth; ct.classList.add('enter');
     if (folders.length) {
         sf.style.display = 'block';
         document.getElementById('folders-row').innerHTML = folders.map((item,i) => {
             const d = JSON.stringify({id:item.id,name:item.name,isF:true,url:''});
-            return `<div class="folder-card" style="animation-delay:${i*35}ms"
-                onclick='open2(${d.replace(/'/g,"&#39;")})'>
-                <img src="icons/icon-folder.svg" alt="">
-                <span class="folder-name">${item.name}</span>
-            </div>`;
+            return `<div class="folder-card" style="animation-delay:${i*35}ms" onclick='open2(${d.replace(/'/g,"&#39;")})'><img src="icons/icon-folder.svg" alt=""><span class="folder-name">${item.name}</span></div>`;
         }).join('');
     } else sf.style.display = 'none';
-
     if (files.length) {
         sg.style.display = 'block';
         document.getElementById('files-grid').innerHTML = files.map((item,i) => {
-            const {cls,icon,label} = ftype(item.name);
-            const url = item['@microsoft.graph.downloadUrl']||'';
-            const d   = JSON.stringify({id:item.id,name:item.name,isF:false,url});
-            const th  = item.thumbnails?.[0]?.medium?.url||'';
-            const inside = th
-                ? `<img src="${th.replace(/"/g,'&quot;')}" class="thmb" alt="" loading="lazy">${icon}`
-                : icon;
-            return `<div class="file-card" style="animation-delay:${(folders.length+i)*35}ms"
-                onclick='open2(${d.replace(/'/g,"&#39;")})'>
-                <div class="file-thumb ${cls}">${inside}</div>
-                <div class="file-info">
-                    <div class="file-name">${item.name}</div>
-                    <span class="file-badge ${cls}">${label}</span>
-                </div>
-            </div>`;
+            const {cls,icon,label} = ftype(item.name), url = item['@microsoft.graph.downloadUrl']||'', d = JSON.stringify({id:item.id,name:item.name,isF:false,url}), th = item.thumbnails?.[0]?.medium?.url||'';
+            const inside = th ? `<img src="${th.replace(/"/g,'&quot;')}" class="thmb" alt="" loading="lazy">${icon}` : icon;
+            return `<div class="file-card" style="animation-delay:${(folders.length+i)*35}ms" onclick='open2(${d.replace(/'/g,"&#39;")})'><div class="file-thumb ${cls}">${inside}</div><div class="file-info"><div class="file-name">${item.name}</div><span class="file-badge ${cls}">${label}</span></div></div>`;
         }).join('');
     } else sg.style.display = 'none';
-
     em.style.display = (!folders.length && !files.length) ? 'block' : 'none';
 }
-
 function open2({id,name,isF,url}) {
     if (isF) { crumbs.push({name,id}); loadFolder(id); }
-    else {
-        const e = name.split('.').pop().toLowerCase();
-        if (e==='pdf') openPdf(url,name);
-        else if (['jpg','jpeg','png','gif','bmp','webp'].includes(e)) openImg(url,name);
-    }
+    else { const e=name.split('.').pop().toLowerCase(); if(e==='pdf') openPdf(url,name); else if(['jpg','jpeg','png','gif','bmp','webp'].includes(e)) openImg(url,name); }
 }
-async function navTo(i) {
-    if (i===crumbs.length-1) return;
-    crumbs = crumbs.slice(0,i+1);
-    await loadFolder(crumbs[i].id);
-}
-
+async function navTo(i) { if(i===crumbs.length-1)return; crumbs=crumbs.slice(0,i+1); await loadFolder(crumbs[i].id); }
 async function openPdf(url,name) {
-    pdfDoc=null; hits=[]; hitIdx=-1; lastSearchQ=''; currentPage=1;
-    highlightSearch('');
-    document.getElementById('pdf-title').textContent = name;
-    document.getElementById('pdf-scaler').innerHTML  = '<div style="color:#444;padding:48px;text-align:center"><div class="spinner" style="margin:0 auto 16px;border-color:#2a2a2a;border-top-color:#00be35"></div><span style="color:#555">PDF laden…</span></div>';
-    document.getElementById('pdf-page-count').textContent = '';
-    document.getElementById('pdf-outline').innerHTML = '<div class="ol-hdr">Inhoudsopgave</div>';
-    document.getElementById('pdf-info').textContent  = '';
-    if (showOutline) toggleOutline();
-    if (showSearch)  toggleSearch();
+    pdfDoc=null; hits=[]; hitIdx=-1; lastSearchQ=''; currentPage=1; highlightSearch('');
+    document.getElementById('pdf-title').textContent=name;
+    document.getElementById('pdf-scaler').innerHTML='<div style="color:#444;padding:48px;text-align:center"><div class="spinner" style="margin:0 auto 16px;border-color:#2a2a2a;border-top-color:#00be35"></div><span style="color:#555">PDF laden&hellip;</span></div>';
+    document.getElementById('pdf-page-count').textContent='';
+    document.getElementById('pdf-outline').innerHTML='<div class="ol-hdr">Inhoudsopgave</div>';
+    document.getElementById('pdf-info').textContent='';
+    if(showOutline)toggleOutline(); if(showSearch)toggleSearch();
     document.getElementById('pdf-overlay').classList.add('on');
     try {
-        const buf = await (await fetch(url)).arrayBuffer();
+        let buf;
+        if (NATIVE) {
+            const resp = await Capacitor.Plugins.CapacitorHttp.request({ method:'GET', url, responseType:'arraybuffer' });
+            if (resp.status >= 400) throw new Error(`HTTP ${resp.status}`);
+            if (typeof resp.data === 'string') { const bin=atob(resp.data), bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); buf=bytes.buffer; } else { buf=resp.data; }
+        } else { buf = await (await fetch(url)).arrayBuffer(); }
         pdfDoc = await pdfjsLib.getDocument({data:buf}).promise;
-        document.getElementById('pdf-page-count').textContent = `1 / ${pdfDoc.numPages}`;
-        const firstPage = await pdfDoc.getPage(1);
-        const naturalW  = firstPage.getViewport({scale:1}).width;
-        const availW    = document.getElementById('pdf-pages').clientWidth - 40;
-        pdfFitScale = Math.max(0.5, availW / naturalW);
-        pdfScale    = pdfFitScale;
-        pdfRenderScale = pdfFitScale;
-        updateZoomLabel();
-        renderOutline(await pdfDoc.getOutline());
-        await renderPages();
+        document.getElementById('pdf-page-count').textContent=`1 / ${pdfDoc.numPages}`;
+        const firstPage=await pdfDoc.getPage(1), naturalW=firstPage.getViewport({scale:1}).width, availW=document.getElementById('pdf-pages').clientWidth-40;
+        pdfFitScale=Math.max(0.5,availW/naturalW); pdfScale=pdfFitScale; pdfRenderScale=pdfFitScale;
+        updateZoomLabel(); renderOutline(await pdfDoc.getOutline()); await renderPages();
     } catch(e) {
-        document.getElementById('pdf-scaler').innerHTML = `<div style="color:#f55;padding:32px;text-align:center">Fout: ${e.message}</div>`;
+        const isExternal = !url.includes('.sharepoint.com')&&!url.includes('microsoft.com')&&!url.startsWith('blob:');
+        if (isExternal) { document.getElementById('pdf-scaler').innerHTML=`<div style="color:#888;padding:48px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px"><div style="font-size:14px;line-height:1.6">Deze PDF kan niet in de app worden geladen<br>(de server staat dit niet toe).</div><button onclick="window.open('${url.replace(/'/g,"\\'")}\'_blank')" style="background:var(--green);border:none;color:#fff;padding:13px 24px;border-radius:12px;font-size:15px;font-family:inherit;font-weight:600;cursor:pointer">Openen in browser</button></div>`; }
+        else { document.getElementById('pdf-scaler').innerHTML=`<div style="color:#f55;padding:32px;text-align:center">Fout: ${e.message}</div>`; }
     }
 }
-
-function updateZoomLabel() {
-    const pct = Math.round((pdfScale / pdfFitScale) * 100);
-    document.getElementById('pdf-zoom-label').textContent = pct + '%';
-}
-
+function updateZoomLabel() { document.getElementById('pdf-zoom-label').textContent=Math.round((pdfScale/pdfFitScale)*100)+'%'; }
 function zoomPdf(dir) {
-    if (dir === 0) {
-        pdfScale = pdfFitScale;
-    } else {
-        const pct = Math.round((pdfScale / pdfFitScale) * 100);
-        const newPct = dir > 0
-            ? Math.min(400, Math.floor(pct / 10) * 10 + 10)
-            : Math.max(20,  Math.ceil(pct  / 10) * 10 - 10);
-        pdfScale = pdfFitScale * (newPct / 100);
-    }
+    if(dir===0){pdfScale=pdfFitScale;}else{const pct=Math.round((pdfScale/pdfFitScale)*100),newPct=dir>0?Math.min(400,Math.floor(pct/10)*10+10):Math.max(20,Math.ceil(pct/10)*10-10);pdfScale=pdfFitScale*(newPct/100);}
     updateZoomLabel();
-    const scaler = document.getElementById('pdf-scaler');
-    const from = parseFloat(scaler.style.zoom) || 1;
-    const to   = pdfScale / pdfRenderScale;
+    const scaler=document.getElementById('pdf-scaler'),from=parseFloat(scaler.style.zoom)||1,to=pdfScale/pdfRenderScale;
     clearTimeout(reRenderTimer);
-    animZoom(scaler, from, to, 220, () => {
-        reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 0);
-    });
+    animZoom(scaler,from,to,220,()=>{reRenderTimer=setTimeout(async()=>{if(pdfDoc)await renderPages();},0);});
 }
-function animZoom(el, from, to, ms, done) {
-    const t0 = performance.now();
-    (function step(now) {
-        const p = Math.min(1, (now - t0) / ms);
-        const e = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
-        el.style.zoom = from + (to - from) * e;
-        p < 1 ? requestAnimationFrame(step) : done();
-    })(t0);
-}
-
+function animZoom(el,from,to,ms,done){const t0=performance.now();(function step(now){const p=Math.min(1,(now-t0)/ms),e=p<0.5?2*p*p:-1+(4-2*p)*p;el.style.zoom=from+(to-from)*e;p<1?requestAnimationFrame(step):done();})(t0);}
 async function renderPages() {
-    const c = document.getElementById('pdf-scaler');
-    const scrollPage = currentPage || 1;
-    c.innerHTML='';
-    c.style.zoom='';
-    pdfRenderScale = pdfScale;
-    for (let i=1;i<=pdfDoc.numPages;i++) {
-        const pg=await pdfDoc.getPage(i);
-        const vp=pg.getViewport({scale:pdfScale});
-        const w=document.createElement('div'); w.id=`pp${i}`; w.className='pg-wrap';
-        w.style.width=vp.width+'px'; w.style.height=vp.height+'px';
+    const c=document.getElementById('pdf-scaler'),scrollPage=currentPage||1;
+    c.innerHTML=''; c.style.zoom=''; pdfRenderScale=pdfScale;
+    for(let i=1;i<=pdfDoc.numPages;i++){
+        const pg=await pdfDoc.getPage(i),vp=pg.getViewport({scale:pdfScale}),w=document.createElement('div');
+        w.id=`pp${i}`; w.className='pg-wrap'; w.style.width=vp.width+'px'; w.style.height=vp.height+'px';
         const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
         w.appendChild(cv); c.appendChild(w);
         await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
-        try {
-            const tc=await pg.getTextContent();
-            const tl=document.createElement('div');
-            tl.className='textLayer';
-            tl.style.width=vp.width+'px'; tl.style.height=vp.height+'px';
-            tl.style.setProperty('--scale-factor', vp.scale);
-            w.appendChild(tl);
-            const task=pdfjsLib.renderTextLayer({textContentSource:tc,container:tl,viewport:vp,textDivs:[]});
-            await (task.promise||task);
-        } catch(_){}
+        try{const tc=await pg.getTextContent(),tl=document.createElement('div');tl.className='textLayer';tl.style.width=vp.width+'px';tl.style.height=vp.height+'px';tl.style.setProperty('--scale-factor',vp.scale);w.appendChild(tl);const task=pdfjsLib.renderTextLayer({textContentSource:tc,container:tl,viewport:vp,textDivs:[]});await(task.promise||task);}catch(_){}
         await new Promise(r=>setTimeout(r,0));
     }
-    if (scrollPage > 1) {
-        const target = document.getElementById(`pp${scrollPage}`);
-        if (target) target.scrollIntoView();
-    }
-    if (lastSearchQ) highlightSearch(lastSearchQ);
-    updateCurrentPage();
+    if(scrollPage>1){const target=document.getElementById(`pp${scrollPage}`);if(target)target.scrollIntoView();}
+    if(lastSearchQ)highlightSearch(lastSearchQ); updateCurrentPage();
 }
-
-function updateCurrentPage() {
-    if (!pdfDoc) return;
-    const c = document.getElementById('pdf-pages');
-    const wraps = c.querySelectorAll('.pg-wrap');
-    if (!wraps.length) return;
-    const cRect = c.getBoundingClientRect();
-    const cMid = cRect.top + cRect.height / 2;
-    let best = 1, bestDist = Infinity;
-    wraps.forEach((w, i) => {
-        const r = w.getBoundingClientRect();
-        const dist = Math.abs((r.top + r.height / 2) - cMid);
-        if (dist < bestDist) { bestDist = dist; best = i + 1; }
-    });
-    currentPage = best;
-    document.getElementById('pdf-page-count').textContent = `${best} / ${pdfDoc.numPages}`;
+function updateCurrentPage(){
+    if(!pdfDoc)return; const c=document.getElementById('pdf-pages'),wraps=c.querySelectorAll('.pg-wrap'); if(!wraps.length)return;
+    const cRect=c.getBoundingClientRect(),cMid=cRect.top+cRect.height/2; let best=1,bestDist=Infinity;
+    wraps.forEach((w,i)=>{const r=w.getBoundingClientRect(),dist=Math.abs((r.top+r.height/2)-cMid);if(dist<bestDist){bestDist=dist;best=i+1;}});
+    currentPage=best; document.getElementById('pdf-page-count').textContent=`${best} / ${pdfDoc.numPages}`;
 }
-
-(function(){
-    const pages = document.getElementById('pdf-pages');
-    pages.addEventListener('scroll', updateCurrentPage, {passive:true});
-    let p0 = 0, s0 = 1.5;
-    pages.addEventListener('touchstart', e => {
-        if (e.touches.length === 2) {
-            p0 = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-            s0 = pdfScale;
-            e.preventDefault();
-        }
-    }, {passive:false});
-    pages.addEventListener('touchmove', e => {
-        if (e.touches.length === 2 && p0 > 0) {
-            const pd = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-            pdfScale = Math.max(pdfFitScale*0.2, Math.min(pdfFitScale*4, s0*(pd/p0)));
-            updateZoomLabel();
-            document.getElementById('pdf-scaler').style.zoom = pdfScale / pdfRenderScale;
-            e.preventDefault();
-        }
-    }, {passive:false});
-    pages.addEventListener('touchend', e => {
-        if (p0 > 0 && e.touches.length < 2) {
-            p0 = 0;
-            clearTimeout(reRenderTimer);
-            reRenderTimer = setTimeout(async () => { if (pdfDoc) await renderPages(); }, 150);
-        }
-    }, {passive:true});
-})();
-
-function renderOutline(ol) {
-    const el=document.getElementById('pdf-outline');
-    el.innerHTML='<div class="ol-hdr">Inhoudsopgave</div>';
-    if (!ol?.length){el.innerHTML+='<div style="padding:14px 16px;color:#555;font-size:13px">Geen inhoudsopgave</div>';return;}
-    el.innerHTML+=buildOL(ol,false);
-}
-function buildOL(arr,child){
-    return arr.map(it=>{
-        const cls='ol-item'+(child?' ol-child':'');
-        const d=it.dest?JSON.stringify(it.dest).replace(/'/g,"&#39;"):'null';
-        return `<div class="${cls}" onclick='olClick(${d})'>${it.title||'—'}</div>`
-            +(it.items?.length?buildOL(it.items,true):'');
-    }).join('');
-}
-async function olClick(dest){
-    if(!dest||!pdfDoc)return;
-    try{
-        let d=typeof dest==='string'?await pdfDoc.getDestination(dest):dest;
-        if(Array.isArray(d)&&d.length){
-            const idx=await pdfDoc.getPageIndex(d[0]);
-            document.getElementById(`pp${idx+1}`)?.scrollIntoView({behavior:'smooth',block:'start'});
-        }
-    }catch{}
-}
+(function(){const pages=document.getElementById('pdf-pages');pages.addEventListener('scroll',updateCurrentPage,{passive:true});let p0=0,s0=1.5;
+pages.addEventListener('touchstart',e=>{if(e.touches.length===2){p0=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);s0=pdfScale;e.preventDefault();}},{passive:false});
+pages.addEventListener('touchmove',e=>{if(e.touches.length===2&&p0>0){const pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);pdfScale=Math.max(pdfFitScale*0.2,Math.min(pdfFitScale*4,s0*(pd/p0)));updateZoomLabel();document.getElementById('pdf-scaler').style.zoom=pdfScale/pdfRenderScale;e.preventDefault();}},{passive:false});
+pages.addEventListener('touchend',e=>{if(p0>0&&e.touches.length<2){p0=0;clearTimeout(reRenderTimer);reRenderTimer=setTimeout(async()=>{if(pdfDoc)await renderPages();},150);}},{passive:true});})();
+function renderOutline(ol){const el=document.getElementById('pdf-outline');el.innerHTML='<div class="ol-hdr">Inhoudsopgave</div>';if(!ol?.length){el.innerHTML+='<div style="padding:14px 16px;color:#555;font-size:13px">Geen inhoudsopgave</div>';return;}el.innerHTML+=buildOL(ol,false);}
+function buildOL(arr,child){return arr.map(it=>{const cls='ol-item'+(child?' ol-child':''),d=it.dest?JSON.stringify(it.dest).replace(/'/g,"&#39;"):'null';return`<div class="${cls}" onclick='olClick(${d})'>${it.title||'&mdash;'}</div>`+(it.items?.length?buildOL(it.items,true):'');}).join('');}
+async function olClick(dest){if(!dest||!pdfDoc)return;try{let d=typeof dest==='string'?await pdfDoc.getDestination(dest):dest;if(Array.isArray(d)&&d.length){const idx=await pdfDoc.getPageIndex(d[0]);document.getElementById(`pp${idx+1}`)?.scrollIntoView({behavior:'smooth',block:'start'});}}catch{}}
 function escHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-async function doSearch(){
-    const q=document.getElementById('pdf-q').value.trim();
-    if(!q||!pdfDoc)return;
-    const ql=q.toLowerCase();
-    if(ql===lastSearchQ&&hits.length){searchNext();return;}
-    lastSearchQ=ql;
-    document.getElementById('pdf-info').textContent='...';
-    hits=[]; hitIdx=-1;
-    highlightSearch('');
-    for(let i=1;i<=pdfDoc.numPages;i++){
-        const txt=(await(await pdfDoc.getPage(i)).getTextContent()).items.map(x=>x.str).join(' ').toLowerCase();
-        let pos=0,occ=0;
-        while((pos=txt.indexOf(ql,pos))!==-1){hits.push({page:i,occ:occ++});pos+=ql.length;}
-    }
-    if(!hits.length){document.getElementById('pdf-info').textContent='Niet gevonden';}
-    else{hitIdx=0;highlightSearch(q);scrollHit();}
-}
-function highlightSearch(q){
-    document.querySelectorAll('.textLayer span[data-orig]').forEach(el=>{
-        el.textContent=el.dataset.orig; delete el.dataset.orig;
-    });
-    if(!q)return;
-    const ql=q.toLowerCase();
-    document.querySelectorAll('.pg-wrap').forEach(wrap=>{
-        const pg=parseInt(wrap.id.replace('pp',''));
-        let occOnPage=0;
-        wrap.querySelectorAll('.textLayer span').forEach(span=>{
-            const t=span.textContent;
-            if(!t.toLowerCase().includes(ql))return;
-            span.dataset.orig=t;
-            let html='',rem=t,remL=t.toLowerCase(),pos;
-            while((pos=remL.indexOf(ql))!==-1){
-                html+=escHtml(rem.slice(0,pos));
-                html+=`<span class="hl" data-pg="${pg}" data-occ="${occOnPage++}">${escHtml(rem.slice(pos,pos+ql.length))}</span>`;
-                rem=rem.slice(pos+ql.length); remL=remL.slice(pos+ql.length);
-            }
-            html+=escHtml(rem);
-            span.innerHTML=html;
-        });
-    });
-}
-function scrollHit(){
-    document.querySelectorAll('.textLayer .hl-current').forEach(el=>el.classList.remove('hl-current'));
-    if(!hits.length)return;
-    const h=hits[hitIdx];
-    const el=document.querySelector(`.textLayer .hl[data-pg="${h.page}"][data-occ="${h.occ}"]`);
-    if(el){el.classList.add('hl-current');el.scrollIntoView({behavior:'smooth',block:'center'});}
-    else{document.getElementById(`pp${h.page}`)?.scrollIntoView({behavior:'smooth',block:'start'});}
-    document.getElementById('pdf-info').textContent=`${hitIdx+1} / ${hits.length}`;
-}
+async function doSearch(){const q=document.getElementById('pdf-q').value.trim();if(!q||!pdfDoc)return;const ql=q.toLowerCase();if(ql===lastSearchQ&&hits.length){searchNext();return;}lastSearchQ=ql;document.getElementById('pdf-info').textContent='...';hits=[];hitIdx=-1;highlightSearch('');for(let i=1;i<=pdfDoc.numPages;i++){const txt=(await(await pdfDoc.getPage(i)).getTextContent()).items.map(x=>x.str).join(' ').toLowerCase();let pos=0,occ=0;while((pos=txt.indexOf(ql,pos))!==-1){hits.push({page:i,occ:occ++});pos+=ql.length;}}if(!hits.length){document.getElementById('pdf-info').textContent='Niet gevonden';}else{hitIdx=0;highlightSearch(q);scrollHit();}}
+function highlightSearch(q){document.querySelectorAll('.textLayer span[data-orig]').forEach(el=>{el.textContent=el.dataset.orig;delete el.dataset.orig;});if(!q)return;const ql=q.toLowerCase();document.querySelectorAll('.pg-wrap').forEach(wrap=>{const pg=parseInt(wrap.id.replace('pp',''));let occOnPage=0;wrap.querySelectorAll('.textLayer span').forEach(span=>{const t=span.textContent;if(!t.toLowerCase().includes(ql))return;span.dataset.orig=t;let html='',rem=t,remL=t.toLowerCase(),pos;while((pos=remL.indexOf(ql))!==-1){html+=escHtml(rem.slice(0,pos));html+=`<span class="hl" data-pg="${pg}" data-occ="${occOnPage++}">${escHtml(rem.slice(pos,pos+ql.length))}</span>`;rem=rem.slice(pos+ql.length);remL=remL.slice(pos+ql.length);}html+=escHtml(rem);span.innerHTML=html;});});}
+function scrollHit(){document.querySelectorAll('.textLayer .hl-current').forEach(el=>el.classList.remove('hl-current'));if(!hits.length)return;const h=hits[hitIdx],el=document.querySelector(`.textLayer .hl[data-pg="${h.page}"][data-occ="${h.occ}"]`);if(el){el.classList.add('hl-current');el.scrollIntoView({behavior:'smooth',block:'center'});}else{document.getElementById(`pp${h.page}`)?.scrollIntoView({behavior:'smooth',block:'start'});}document.getElementById('pdf-info').textContent=`${hitIdx+1} / ${hits.length}`;}
 function searchNext(){if(hits.length){hitIdx=(hitIdx+1)%hits.length;scrollHit();}}
 function searchPrev(){if(hits.length){hitIdx=(hitIdx-1+hits.length)%hits.length;scrollHit();}}
-function toggleOutline(){
-    showOutline=!showOutline;
-    document.getElementById('pdf-outline').classList.toggle('on',showOutline);
-    document.getElementById('pdf-outline-btn').classList.toggle('on',showOutline);
-}
-function toggleSearch(){
-    showSearch=!showSearch;
-    document.getElementById('pdf-search-bar').classList.toggle('on',showSearch);
-    document.getElementById('pdf-search-btn').classList.toggle('on',showSearch);
-    if(showSearch)document.getElementById('pdf-q').focus();
-}
-function closePdf(){
-    document.getElementById('pdf-overlay').classList.remove('on');
-    pdfDoc=null; hits=[];
-    setTimeout(()=>{
-        const scaler = document.getElementById('pdf-scaler');
-        scaler.innerHTML=''; scaler.style.zoom='';
-        if(showOutline)toggleOutline();
-        if(showSearch)toggleSearch();
-    },420);
-}
-
-function openImg(url,name){
-    document.getElementById('img-title').textContent=name;
-    document.getElementById('img-el').src=url;
-    document.getElementById('img-overlay').classList.add('on');
-}
-function closeImg(){
-    document.getElementById('img-overlay').classList.remove('on');
-    setTimeout(()=>{document.getElementById('img-el').src='';},420);
-}
-
-function exitApp(){
-    window.close();
-    setTimeout(()=>{
-        const t=document.createElement('div');
-        t.className='toast';
-        t.textContent='Gebruik de terugknop of thuisknop om te sluiten';
-        document.body.appendChild(t);
-        setTimeout(()=>t.remove(),3500);
-    },300);
-}
-
-function show(id){
-    ['loading','login-screen','content'].forEach(x=>{
-        const el=document.getElementById(x);
-        el.style.display = x===id?(x==='content'?'block':'flex'):'none';
-    });
-}
-function showErr(msg){
-    show('content');
-    document.getElementById('sec-folders').style.display='none';
-    document.getElementById('sec-files').style.display='none';
-    const em=document.getElementById('empty');
-    em.style.display='block';
-    em.innerHTML=`<span style="color:#c41230">Fout: ${msg}</span>`;
-}
-
+function toggleOutline(){showOutline=!showOutline;document.getElementById('pdf-outline').classList.toggle('on',showOutline);document.getElementById('pdf-outline-btn').classList.toggle('on',showOutline);}
+function toggleSearch(){showSearch=!showSearch;document.getElementById('pdf-search-bar').classList.toggle('on',showSearch);document.getElementById('pdf-search-btn').classList.toggle('on',showSearch);if(showSearch)document.getElementById('pdf-q').focus();}
+function closePdf(){document.getElementById('pdf-overlay').classList.remove('on');pdfDoc=null;hits=[];setTimeout(()=>{const scaler=document.getElementById('pdf-scaler');scaler.innerHTML='';scaler.style.zoom='';if(showOutline)toggleOutline();if(showSearch)toggleSearch();},420);}
+function openImg(url,name){document.getElementById('img-title').textContent=name;document.getElementById('img-el').src=url;document.getElementById('img-overlay').classList.add('on');}
+function closeImg(){document.getElementById('img-overlay').classList.remove('on');setTimeout(()=>{document.getElementById('img-el').src='';},420);}
+let qrStream=null,qrAnimFrame=null,qrLastData='',qrWorker=null,qrWorkerBusy=false;
+function initQRWorker(){if(qrWorker)return;const src=`importScripts('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js');\nself.onmessage=function(e){var c=jsQR(e.data.d,e.data.w,e.data.h,{inversionAttempts:'dontInvert'});self.postMessage(c?c.data:null);};`;qrWorker=new Worker(URL.createObjectURL(new Blob([src],{type:'application/javascript'})));qrWorker.onmessage=function(e){qrWorkerBusy=false;if(e.data){stopQRStream();showQRResult(e.data);}};}
+function openQR(){document.getElementById('qr-result').classList.remove('on');document.getElementById('qr-result').style.display='none';document.getElementById('qr-status').textContent='Richt de camera op een QR-code…';document.getElementById('qr-overlay').classList.add('on');initQRWorker();startQRScan();}
+async function startQRScan(){try{qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});const video=document.getElementById('qr-video');video.srcObject=qrStream;await video.play();qrAnimFrame=requestAnimationFrame(scanFrame);}catch(e){document.getElementById('qr-status').textContent='Camera niet beschikbaar: '+(e.message||e);}}
+function scanFrame(){const video=document.getElementById('qr-video');if(video.readyState===video.HAVE_ENOUGH_DATA&&!qrWorkerBusy&&qrWorker){const canvas=document.getElementById('qr-canvas'),MAX_W=640,vw=video.videoWidth,vh=video.videoHeight,scale=vw>MAX_W?MAX_W/vw:1;canvas.width=Math.round(vw*scale);canvas.height=Math.round(vh*scale);const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(video,0,0,canvas.width,canvas.height);const img=ctx.getImageData(0,0,canvas.width,canvas.height);qrWorkerBusy=true;qrWorker.postMessage({d:img.data,w:canvas.width,h:canvas.height},[img.data.buffer]);}qrAnimFrame=requestAnimationFrame(scanFrame);}
+function stopQRStream(){if(qrAnimFrame){cancelAnimationFrame(qrAnimFrame);qrAnimFrame=null;}if(qrStream){qrStream.getTracks().forEach(t=>t.stop());qrStream=null;}qrWorkerBusy=false;}
+function showQRResult(data){qrLastData=data;const isUrl=/^https?:\/\//i.test(data),isPdf=/\.pdf(\?|#|$)/i.test(data);document.getElementById('qr-result-text').textContent=data;const act=document.getElementById('qr-result-actions');act.innerHTML='';if(isPdf||isUrl){const primary=document.createElement('button');primary.className='qr-btn primary';primary.textContent=isPdf?'PDF openen':'Website openen';primary.onclick=()=>{closeQR();if(isPdf){const name=decodeURIComponent(data.split('/').pop().split('?')[0])||'document.pdf';openPdf(data,name);}else{openWeb(data);}};act.appendChild(primary);}const again=document.createElement('button');again.className='qr-btn secondary';again.textContent='Opnieuw scannen';again.onclick=()=>{document.getElementById('qr-result').classList.remove('on');setTimeout(()=>{document.getElementById('qr-result').style.display='none';},200);document.getElementById('qr-status').textContent='Richt de camera op een QR-code…';startQRScan();};act.appendChild(again);const res=document.getElementById('qr-result');res.style.display='flex';requestAnimationFrame(()=>res.classList.add('on'));document.getElementById('qr-status').textContent='';}
+function closeQR(){stopQRStream();document.getElementById('qr-overlay').classList.remove('on');}
+function openWeb(url){qrLastData=url;document.getElementById('web-url').textContent=url;document.getElementById('web-blocked').style.display='none';const frame=document.getElementById('web-frame');frame.style.display='block';document.getElementById('web-overlay').classList.add('on');let loadTimer=setTimeout(()=>{checkFrameBlocked(frame);},4000);frame.onload=()=>{clearTimeout(loadTimer);setTimeout(()=>checkFrameBlocked(frame),500);};frame.onerror=()=>{clearTimeout(loadTimer);showWebBlocked();};frame.src=url;}
+function checkFrameBlocked(frame){try{const doc=frame.contentDocument;if(doc&&doc.body&&doc.body.innerHTML.trim()==='')showWebBlocked();}catch(e){}}
+function showWebBlocked(){document.getElementById('web-frame').style.display='none';document.getElementById('web-blocked').style.display='flex';}
+function closeWeb(){document.getElementById('web-overlay').classList.remove('on');setTimeout(()=>{document.getElementById('web-frame').src='about:blank';document.getElementById('web-frame').style.display='block';document.getElementById('web-blocked').style.display='none';},420);}
+function openExternal(url){if(window.Capacitor?.isNativePlatform?.()){Capacitor.Plugins.Browser.open({url,presentationStyle:'fullscreen'});}else{window.open(url,'_blank');}}
+function openWebExternal(){if(qrLastData)openExternal(qrLastData);}
+function exitApp(){if(NATIVE){Capacitor.Plugins.App.exitApp();}else{window.close();setTimeout(()=>{const t=document.createElement('div');t.className='toast';t.textContent='Gebruik de terugknop of thuisknop om te sluiten';document.body.appendChild(t);setTimeout(()=>t.remove(),3500);},300);}}
+function show(id){['loading','login-screen','content'].forEach(x=>{const el=document.getElementById(x);el.style.display=x===id?(x==='content'?'block':'flex'):'none';});}
+function showErr(msg){show('content');document.getElementById('sec-folders').style.display='none';document.getElementById('sec-files').style.display='none';const em=document.getElementById('empty');em.style.display='block';em.innerHTML=`<span style="color:#c41230">Fout: ${msg}</span>`;}
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-
-(function(){
-    const ct = document.getElementById('content');
-    const ind = document.getElementById('ptr-indicator');
-    let startY = 0, curY = 0, active = false;
-    const THRESHOLD = 72;
-    ct.addEventListener('touchstart', e => {
-        if (ct.scrollTop === 0 && e.touches.length === 1) {
-            startY = curY = e.touches[0].clientY; active = true;
-        }
-    }, {passive:true});
-    ct.addEventListener('touchmove', e => {
-        if (!active) return;
-        curY = e.touches[0].clientY;
-        const dy = curY - startY;
-        if (dy > 10) {
-            ind.textContent = dy > THRESHOLD ? '↑ Loslaten om te vernieuwen' : '↓ Trek omlaag om te vernieuwen';
-            ind.style.display = 'block';
-        }
-    }, {passive:true});
-    ct.addEventListener('touchend', () => {
-        if (!active) return;
-        active = false;
-        ind.style.display = 'none';
-        if (curY - startY > THRESHOLD && crumbs.length)
-            loadFolder(crumbs[crumbs.length-1].id);
-    }, {passive:true});
-})();
-
+(function(){const ct=document.getElementById('content'),ind=document.getElementById('ptr-indicator');let startY=0,curY=0,active=false;const THRESHOLD=72;ct.addEventListener('touchstart',e=>{if(ct.scrollTop===0&&e.touches.length===1){startY=curY=e.touches[0].clientY;active=true;}},{passive:true});ct.addEventListener('touchmove',e=>{if(!active)return;curY=e.touches[0].clientY;const dy=curY-startY;if(dy>10){ind.textContent=dy>THRESHOLD?'↑ Loslaten om te vernieuwen':'↓ Trek omlaag om te vernieuwen';ind.style.display='block';}},{passive:true});ct.addEventListener('touchend',()=>{if(!active)return;active=false;ind.style.display='none';if(curY-startY>THRESHOLD&&crumbs.length)loadFolder(crumbs[crumbs.length-1].id);},{passive:true});})();
 init();
 </script>
 </body>
